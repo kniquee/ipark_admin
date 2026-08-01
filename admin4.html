@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPark Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        /* ============================================
+           GLOBAL RESET & MODERN GRADIENT THEME
+           ============================================ */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --sidebar-width: 260px;
+            --bg-base:       #070a12;
+            --bg-card:       rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(21, 32, 54, 0.85);
+            --bg-deep:       rgba(10, 15, 29, 0.85);
+            --border:        rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(56, 189, 248, 0.25);
+            --border-soft:   rgba(255, 255, 255, 0.04);
+            --text-primary:  #f8fafc;
+            --text-secondary:#94a3b8;
+            --text-muted:    #64748b;
+            
+            /* Accent Colors */
+            --accent:        #38bdf8;
+            --accent-glow:   rgba(56, 189, 248, 0.35);
+            --accent-soft:   rgba(56, 189, 248, 0.12);
+            --accent-border: rgba(56, 189, 248, 0.3);
+            
+            --green:         #10b981;
+            --green-soft:    rgba(16, 185, 129, 0.12);
+            --green-border:  rgba(16, 185, 129, 0.3);
+            
+            --red:           #f43f5e;
+            --red-soft:      rgba(244, 63, 94, 0.12);
+            --red-border:    rgba(244, 63, 94, 0.3);
+            
+            --yellow:        #f59e0b;
+            --yellow-soft:   rgba(245, 158, 11, 0.12);
+            --yellow-border: rgba(245, 158, 11, 0.3);
+            
+            --purple:        #818cf8;
+            --purple-soft:   rgba(129, 140, 248, 0.12);
+            --purple-border: rgba(129, 140, 248, 0.3);
+            
+            --mono:          'JetBrains Mono', monospace;
+            --sans:          'Plus Jakarta Sans', sans-serif;
+            --radius-sm:     8px;
+            --radius-md:     12px;
+            --radius-lg:     18px;
+            
+            --table-cell-padding: 12px 18px;
+            --table-header-padding: 14px 18px;
+        }
+
+        html, body { 
+            height: 100%; 
+            background: var(--bg-base); 
+            color: var(--text-primary); 
+            font-family: var(--sans); 
+            font-size: 14px; 
+            line-height: 1.5; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Gradient Aura Overlay */
+        body::before {
+            content: ''; 
+            position: fixed; 
+            inset: 0;
+            background: 
+                radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(129, 140, 248, 0.07) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
+                linear-gradient(180deg, #070a12 0%, #0d1322 100%);
+            pointer-events: none; 
+            z-index: 0;
+        }
+
+        .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+        /* General Icon Utilities */
+        .icon-sm { width: 16px; height: 16px; stroke-width: 2; flex-shrink: 0; }
+        .icon-md { width: 18px; height: 18px; stroke-width: 2; flex-shrink: 0; }
+        .icon-lg { width: 22px; height: 22px; stroke-width: 2; flex-shrink: 0; }
+
+        /* Brand Logo Image */
+        .brand-logo {
+            height: 100px;
+            width: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+            /* Applies #38BDF8 color filter to logo */
+            filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(1455%) hue-rotate(167deg) brightness(101%) contrast(96%);
+        }
+
+        /* ============================================
+           ENHANCED SIDEBAR STYLES
+           ============================================ */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: rgba(10, 15, 29, 0.7); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            height: 100vh; 
+            z-index: 50; 
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-brand { 
+            padding: 5px 24px 10px; 
+            border-bottom: 1px solid var(--border); 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .brand-name { 
+            font-size: 28px; 
+            font-weight: 800; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-sub { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-family: var(--mono); 
+            letter-spacing: 2px; 
+            margin-top: -8px; 
+            text-transform: uppercase; 
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav { flex: 1; padding: 20px 14px; overflow-y: auto; }
+
+        .nav-section-label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            padding: 0 10px; 
+            margin: 22px 0 8px; 
+        }
+
+        .nav-section-label:first-child { margin-top: 4px; }
+
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 16px; 
+            border-radius: var(--radius-md); 
+            font-size: 14px; 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            margin-bottom: 6px; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-decoration: none; 
+            letter-spacing: 0.2px; 
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover { 
+            background: rgba(255, 255, 255, 0.04); 
+            color: var(--text-primary); 
+            transform: translateX(3px);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active { 
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%); 
+            color: var(--accent); 
+            border-color: var(--accent-border); 
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.12);
+        }
+
+        .sidebar-signout { padding: 18px 20px; border-top: 1px solid var(--border); margin-top: auto; }
+
+        .signout-sidebar-btn {
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 11px 14px; border-radius: var(--radius-md);
+            font-size: 13px; font-weight: 700; color: var(--red); background: var(--red-soft); border: 1px solid var(--red-border); cursor: pointer; font-family: var(--mono); letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+        }
+        .signout-sidebar-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2); }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+        .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+        
+        .topbar { 
+            background: rgba(10, 15, 29, 0.6); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); 
+            padding: 0 36px; 
+            height: 68px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            position: sticky; 
+            top: 0; 
+            z-index: 40; 
+        }
+        .page-title { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; }
+
+        .page-body { padding: 32px 36px; flex: 1; display: flex; flex-direction: column; gap: 24px; }
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+
+        /* ============================================
+           DASHBOARD STAT CARDS
+           ============================================ */
+        .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 28px; }
+        .stat-card { 
+            background: var(--bg-card); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            padding: 24px; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
+        .stat-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+        .stat-card.total::after { background: linear-gradient(90deg, var(--accent), #818cf8); }
+        .stat-card.avail::after { background: linear-gradient(90deg, var(--green), #34d399); }
+        .stat-card.occup::after { background: linear-gradient(90deg, var(--red), #fb7185); }
+        .stat-card.today::after { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
+        
+        .stat-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+        .stat-number { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+        .stat-card.total .stat-number { color: var(--accent); text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
+        .stat-card.avail .stat-number { color: var(--green); text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+        .stat-card.occup .stat-number { color: var(--red); text-shadow: 0 0 20px rgba(244, 63, 94, 0.3); }
+        .stat-card.today .stat-number { color: var(--yellow); text-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+        .stat-desc { font-size: 12px; color: var(--text-secondary); margin-top: 8px; font-family: var(--mono); letter-spacing: 0.3px; }
+        
+        .stat-bar-track { height: 5px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; margin-top: 18px; overflow: hidden; }
+        .stat-bar-fill  { height: 100%; border-radius: 4px; transition: width 0.5s ease-out; }
+        .stat-card.total .stat-bar-fill { background: linear-gradient(90deg, var(--accent), #818cf8); }
+        .stat-card.avail .stat-bar-fill { background: linear-gradient(90deg, var(--green), #34d399); }
+        .stat-card.occup .stat-bar-fill { background: linear-gradient(90deg, var(--red), #fb7185); }
+        .stat-card.today .stat-bar-fill { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
+
+        /* ============================================
+           SECTION CARDS & TABLES
+           ============================================ */
+        .section-card { 
+            background: var(--bg-card); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            overflow: hidden; 
+            margin-bottom: 24px; 
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+        .section-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
+        .section-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        
+        .search-wrapper { position: relative; display: flex; align-items: center; }
+        .search-icon { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; }
+        .search-input { font-size: 13px; font-family: var(--mono); color: var(--text-primary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 16px 9px 36px; outline: none; width: 220px; transition: all 0.25s; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+        
+        .filter-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-deep); }
+        .filter-btn { font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: transparent; border: none; border-right: 1px solid var(--border); padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:last-child { border-right: none; }
+        .filter-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+
+        .slot-table { width: 100%; border-collapse: collapse; }
+        .slot-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
+        .slot-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            font-family: var(--mono); 
+            padding: var(--table-header-padding); 
+            text-align: center; 
+        }
+        .slot-table td { 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            text-align: center; 
+            font-size: 14px;
+        }
+        .slot-table tbody tr { transition: background 0.2s ease; }
+        .slot-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        .wing-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-secondary); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 4px 12px; border-radius: var(--radius-sm); letter-spacing: 1px; }
+        .slot-pill { font-family: var(--mono); font-size: 14px; font-weight: 700; background: rgba(56, 189, 248, 0.08); border: 1px solid var(--accent-border); padding: 4px 12px; border-radius: var(--radius-sm); color: var(--accent); }
+        
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; font-family: var(--mono); padding: 6px 14px; border-radius: 999px; }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+        .status-badge.available { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
+        .status-badge.available .status-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .status-badge.occupied  { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-border); }
+        .status-badge.occupied  .status-dot { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse-dot 1.4s infinite; }
+        
+        @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:0.3} }
+        .time-val { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text-primary); }
+        .time-val.empty { color: var(--text-muted); font-style: italic; }
+
+        /* ============================================
+           HISTORY PAGE STYLES
+           ============================================ */
+        .slot-filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+        .slot-filter-chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-md); background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .slot-filter-chip:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+        .slot-filter-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: 0 4px 12px var(--accent-soft); }
+        .slot-filter-chip.allslots { background: var(--purple-soft); border-color: var(--purple-border); color: var(--purple); }
+
+        .date-filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .date-search-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 16px; }
+        .date-input { font-size: 13px; font-family: var(--mono); color: var(--text-primary); background: transparent; border: none; outline: none; color-scheme: dark; }
+        .date-clear-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
+        .date-clear-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .active-filter-tag { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--yellow); background: var(--yellow-soft); border: 1px solid var(--yellow-border); border-radius: var(--radius-sm); padding: 5px 12px; }
+
+        .history-section-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+        .history-summary-chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
+        .history-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            letter-spacing: 1px; 
+            padding: var(--table-header-padding); 
+            text-align: left; 
+        }
+        .history-table td { 
+            font-family: var(--mono); 
+            font-size: 13px; 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            color: var(--text-primary); 
+        }
+        .empty-history { font-family: var(--mono); font-size: 13px; color: var(--text-secondary); text-align: center; padding: 40px; }
+
+        /* ============================================
+           ACCOUNT PROFILE HERO & RBAC GROUPS
+           ============================================ */
+        .account-hero { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%); 
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            padding: 32px 36px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+        .account-hero-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: #7ec8f0; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); border-radius: 999px; padding: 6px 16px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        .account-hero-name { font-size: 26px; font-weight: 800; color: #f8fafc; }
+        .account-hero-meta { display: flex; gap: 24px; margin-top: 14px; flex-wrap: wrap; }
+        .account-hero-meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); font-family: var(--mono); }
+
+        .pending-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
+        .pending-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+        .pending-badge { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); }
+        
+        .pending-table { width: 100%; border-collapse: collapse; }
+        .pending-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
+        .pending-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            letter-spacing: 1.5px; 
+            padding: var(--table-header-padding); 
+            text-align: left; 
+        }
+        .pending-table td { 
+            font-size: 13px; 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            color: var(--text-primary); 
+        }
+        
+        .action-btn-group { display: flex; align-items: center; gap: 8px; width: 100%; }
+        .approve-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; text-align: center; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .approve-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
+        .reject-btn  { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; text-align: center; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--red-soft); border: 1px solid var(--red-border); color: var(--red); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .reject-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
+        .delete-btn  { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: var(--radius-sm); background: var(--red-soft); border: 1px solid var(--red-border); color: var(--red); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .delete-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
+
+        .print-history-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
+        .print-history-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
+        .print-session-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
+        .print-session-btn:hover { background: rgba(129, 140, 248, 0.25); transform: translateY(-1px); }
+
+        /* Compact Audit Table Styles */
+        .audit-user-cell { display: flex; flex-direction: column; gap: 3px; }
+        .audit-user-name { font-size: 14px; font-weight: 700; color: #ffffff; }
+        .audit-user-meta { font-size: 12px; font-family: var(--mono); color: var(--accent); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .audit-user-email { color: var(--text-secondary); }
+
+        .audit-time-cell { font-family: var(--mono); font-size: 12px; font-weight: 500; color: #f1f5f9; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .audit-time-divider { color: var(--text-muted); }
+
+        .audit-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; font-family: var(--mono); padding: 5px 12px; border-radius: 999px; }
+        .audit-badge.active { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .audit-badge.signed-out { background: rgba(148, 163, 184, 0.12); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+        .accessible-audit-table th { font-size: 11px !important; letter-spacing: 1px !important; color: var(--text-secondary) !important; padding: var(--table-header-padding) !important; }
+        .accessible-audit-table td { padding: var(--table-cell-padding) !important; font-size: 13px !important; }
+
+        /* ============================================
+           MODALS
+           ============================================ */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .modal-overlay.visible { opacity: 1; pointer-events: all; }
+        .modal { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-strong); border-radius: 20px; padding: 36px 40px; max-width: 420px; width: 90%; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
+        .modal-title { font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
+        .modal-desc  { font-family: var(--mono); font-size: 12px; color: var(--text-secondary); line-height: 1.8; margin-bottom: 28px; white-space: pre-line; }
+        .modal-buttons { display: flex; gap: 12px; }
+        .modal-cancel  { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 700; color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
+        .modal-cancel:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-primary); }
+        .modal-confirm-red   { flex: 1; background: var(--red-soft); border: 1px solid var(--red-border); border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 700; color: var(--red); cursor: pointer; transition: all 0.2s; }
+        .modal-confirm-red:hover { background: rgba(244, 63, 94, 0.25); }
+        .modal-confirm-green { flex: 1; background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 700; color: var(--green); cursor: pointer; transition: all 0.2s; }
+        .modal-confirm-green:hover { background: rgba(16, 185, 129, 0.25); }
+
+        /* ============================================
+           PRINT PREVIEW STYLES
+           ============================================ */
+        @media print {
+            html, body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: 100% !important;
+            }
+            body * { visibility: hidden !important; }
+            #print-area, #print-area * { visibility: visible !important; }
+            #print-area {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                padding: 40px !important;
+                background: white !important;
+                display: block !important;
+                z-index: 9999 !important;
+                color: #000 !important;
+                margin: 0 !important;
+                box-sizing: border-box !important;
+                font-family: 'JetBrains Mono', monospace !important;
+            }
+            .print-header {
+                text-align: center !important;
+                margin-bottom: 24px !important;
+                padding-bottom: 15px !important;
+                border-bottom: 2px solid #333 !important;
+            }
+            .print-header h1 { font-size: 24px !important; font-weight: 800 !important; color: #000 !important; margin-bottom: 4px !important; }
+            .print-header p { font-size: 12px !important; color: #444 !important; font-family: 'JetBrains Mono', monospace !important; margin: 2px 0 !important; }
+            #print-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; font-family: 'JetBrains Mono', monospace !important; }
+            #print-table th { background: #f0f0f0 !important; font-weight: bold !important; padding: 10px 12px !important; border: 1px solid #000 !important; text-align: left !important; font-size: 10px !important; text-transform: uppercase !important; letter-spacing: 1px !important; }
+            #print-table td { padding: 8px 12px !important; border: 1px solid #ccc !important; color: #000 !important; text-align: left !important; font-size: 11px !important; }
+            #print-table tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+            @page { margin: 15mm 12mm !important; size: A4 portrait !important; }
+        }
+
+        #print-area { display: none; }
+        #print-area.visible-on-screen { display: block !important; background: white !important; color: #000 !important; padding: 30px !important; font-family: 'JetBrains Mono', monospace !important; max-width: 100% !important; }
+        #print-area.visible-on-screen .print-header { text-align: center !important; margin-bottom: 20px !important; padding-bottom: 12px !important; border-bottom: 2px solid #333 !important; }
+        #print-area.visible-on-screen .print-header h1 { font-size: 22px !important; color: #000 !important; }
+        #print-area.visible-on-screen .print-header p { color: #444 !important; }
+        #print-area.visible-on-screen #print-table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; }
+        #print-area.visible-on-screen #print-table th { background: #f0f0f0 !important; font-weight: bold !important; padding: 8px 10px !important; border: 1px solid #000 !important; text-align: left !important; }
+        #print-area.visible-on-screen #print-table td { padding: 6px 10px !important; border: 1px solid #ccc !important; color: #000 !important; text-align: left !important; }
+        #print-area.visible-on-screen #print-table tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+    </style>
+</head>
+<body>
+
+    <div class="modal-overlay" id="modal-signout"><div class="modal"><div class="modal-title">Sign Out?</div><div class="modal-desc">You will be returned to the login screen.</div><div class="modal-buttons"><button class="modal-cancel" id="signout-cancel">Cancel</button><button class="modal-confirm-red" id="signout-confirm">Sign Out</button></div></div></div>
+    <div class="modal-overlay" id="modal-approve"><div class="modal"><div class="modal-title">Approve Account</div><div class="modal-desc" id="approve-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="approve-cancel">Cancel</button><button class="modal-confirm-green" id="approve-confirm">Approve</button></div></div></div>
+    <div class="modal-overlay" id="modal-reject"><div class="modal"><div class="modal-title">Reject Account</div><div class="modal-desc" id="reject-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="reject-cancel">Cancel</button><button class="modal-confirm-red" id="reject-confirm">Reject</button></div></div></div>
+    <div class="modal-overlay" id="modal-delete-admin"><div class="modal"><div class="modal-title">Delete Admin Account</div><div class="modal-desc" id="delete-admin-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="delete-admin-cancel">Cancel</button><button class="modal-confirm-red" id="delete-admin-confirm">Delete</button></div></div></div>
+
+    <div class="layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-name">
+                    <img src="logo.png" alt="iPark Logo" class="brand-logo">
+                </div>
+                <div class="brand-sub">Admin Dashboard</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section-label">Monitor</div>
+                <a class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')">
+                    <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    Dashboard
+                </a>
+                <a class="nav-item" id="nav-history" onclick="showPage('history')">
+                    <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    History Logs
+                </a>
+                <div class="nav-section-label">Manage</div>
+                <a class="nav-item" id="nav-accounts" onclick="showPage('accounts')">
+                    <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Account Profile
+                </a>
+            </nav>
+            <div class="sidebar-signout">
+                <button class="signout-sidebar-btn" id="signout-sidebar-btn">
+                    <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+                    Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <div class="main">
+            <div class="topbar">
+                <div class="page-title" id="topbar-title">
+                    <svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    Parking Overview
+                </div>
+            </div>
+
+            <div class="page-body">
+                <!-- DASHBOARD PAGE -->
+                <div class="page-view active" id="page-dashboard">
+                    <div class="stats-row">
+                        <div class="stat-card total">
+                            <div class="stat-label">
+                                Total Slots
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h12"/><path d="M6 12h12"/><path d="M6 16h8"/></svg>
+                            </div>
+                            <div class="stat-number">21</div>
+                            <div class="stat-desc">L + M + R Wings</div>
+                            <div class="stat-bar-track"><div class="stat-bar-fill" style="width:100%"></div></div>
+                        </div>
+                        <div class="stat-card avail">
+                            <div class="stat-label">
+                                Available
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                            </div>
+                            <div class="stat-number" id="stat-available">—</div>
+                            <div class="stat-desc" id="stat-avail-pct">—</div>
+                            <div class="stat-bar-track"><div class="stat-bar-fill" id="stat-avail-bar"></div></div>
+                        </div>
+                        <div class="stat-card occup">
+                            <div class="stat-label">
+                                Occupied
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                            </div>
+                            <div class="stat-number" id="stat-occupied">—</div>
+                            <div class="stat-desc" id="stat-occup-pct">—</div>
+                            <div class="stat-bar-track"><div class="stat-bar-fill" id="stat-occup-bar"></div></div>
+                        </div>
+                        <div class="stat-card today">
+                            <div class="stat-label">
+                                Total Vehicles Parked
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>
+                            </div>
+                            <div class="stat-number" id="stat-today">—</div>
+                            <div class="stat-desc" id="stat-today-date">—</div>
+                            <div class="stat-bar-track"><div class="stat-bar-fill" id="stat-today-bar"></div></div>
+                        </div>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-title">
+                                <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                                Slot Activity
+                            </div>
+                            <div class="section-tools">
+                                <div class="search-wrapper">
+                                    <svg class="search-icon icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <input class="search-input" id="search" type="text" placeholder="Search slot...">
+                                </div>
+                                <div class="filter-group">
+                                    <button class="filter-btn active" data-filter="all">All</button>
+                                    <button class="filter-btn" data-filter="occupied">Occupied</button>
+                                    <button class="filter-btn" data-filter="available">Available</button>
+                                </div>
+                            </div>
+                        </div>
+                        <table class="slot-table">
+                            <thead><tr><th style="width:30%;">Wing</th><th style="width:14%;">Slot</th><th style="width:28%;">Status</th><th style="width:30%;">Time In</th></tr></thead>
+                            <tbody id="slot-tbody">
+                                <tr data-slot="L1"><td><span class="wing-badge">LEFT</span></td><td><span class="slot-pill">L1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M1"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M2"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M2</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M3"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M3</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M4"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M4</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M5"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M5</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M6"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M6</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M7"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M7</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R1"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R2"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R2</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R3"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R3</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R4"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R4</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R5"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R5</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R6"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R6</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R7"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R7</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R8"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R8</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R9"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R9</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R10"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R10</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R11"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R11</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R12"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R12</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R13"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R13</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HISTORY PAGE -->
+                <div class="page-view" id="page-history">
+                    <div class="slot-filter-row" id="slot-chips"></div>
+                    <div class="date-filter-bar">
+                        <div class="date-search-wrap">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                            <input type="date" class="date-input" id="date-search" onchange="applyDateSearch()">
+                        </div>
+                        <button class="date-clear-btn" onclick="clearDateFilter()">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                            Clear Date
+                        </button>
+                        <button class="print-history-btn" onclick="printHistory()">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                            Print History
+                        </button>
+                        <span class="active-filter-tag" id="active-filter-tag" style="display:none"></span>
+                    </div>
+                    <div class="history-section-card">
+                        <div class="section-header">
+                            <div class="section-title" id="history-section-slot-label">
+                                <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                                All Slots
+                            </div>
+                            <div class="history-summary-chip" id="history-count-chip">0 records</div>
+                        </div>
+                        <table class="history-table">
+                            <thead id="history-thead"><tr><th style="width:8%;">#</th><th style="width:15%;">Slot</th><th style="width:20%;">Date</th><th style="width:20%;">Time In</th><th style="width:20%;">Time Out</th><th style="width:17%;">Duration</th></tr></thead>
+                            <tbody id="history-table-body"><tr><td colspan="6" class="empty-history">Connecting real-time records...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ACCOUNTS PAGE -->
+                <div class="page-view" id="page-accounts">
+                    <div class="account-hero">
+                        <div class="account-hero-badge" id="role-display-badge">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Loading...
+                        </div>
+                        <div class="account-hero-name" id="acct-name">Loading Profile...</div>
+                        <div class="account-hero-meta">
+                            <div class="account-hero-meta-item">
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                <span id="acct-hero-username">Username: —</span>
+                            </div>
+                            <div class="account-hero-meta-item">
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                <span id="acct-hero-email">Email: —</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="superadmin-management-blocks" style="display: none;">
+                        <!-- ACTIVE ADMIN ACCOUNTS CARD -->
+                        <div class="pending-card">
+                            <div class="pending-header">
+                                <div>
+                                    <div class="section-title">
+                                        <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        Admin Accounts
+                                    </div>
+                                </div>
+                                <div class="pending-badge" id="admin-count-badge" style="background:var(--accent-soft); border-color:var(--accent-border); color:var(--accent);">0 Admins</div>
+                            </div>
+                            <table class="pending-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:6%;">#</th>
+                                        <th style="width:24%;">Full Name</th>
+                                        <th style="width:20%;">Username</th>
+                                        <th style="width:30%;">Email Address</th>
+                                        <th style="width:20%; text-align: center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="active-admins-tbody">
+                                    <tr><td colspan="5" class="empty-history">Loading active administrators...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- PENDING ADMIN APPLICATIONS CARD -->
+                        <div class="pending-card" id="pending-card-container" style="display: none;">
+                            <div class="pending-header">
+                                <div>
+                                    <div class="section-title">
+                                        <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                                        Pending Administrator
+                                    </div>
+                                </div>
+                                <div class="pending-badge" id="pending-count-badge">0 Pending Approval</div>
+                            </div>
+                            <table class="pending-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%;">#</th>
+                                        <th style="width:22%;">Full Name</th>
+                                        <th style="width:18%;">Username</th>
+                                        <th style="width:25%;">Email Address</th>
+                                        <th style="width:15%;">Date Requested</th>
+                                        <th style="width:15%; text-align: center;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pending-tbody">
+                                    <tr><td colspan="6" class="empty-history">Loading pending authorization requests...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- ADMIN SIGN-IN HISTORY AUDITS CARD -->
+                        <div class="pending-card">
+                            <div class="pending-header">
+                                <div>
+                                    <div class="section-title">
+                                        <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                                        Admin Sign-In History Audits
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                    <div class="date-search-wrap" style="padding: 5px 10px;">
+                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                        <input type="date" class="date-input" id="session-date-search" style="font-size:12px;" onchange="applySessionDateSearch()">
+                                    </div>
+                                    <button class="date-clear-btn" style="font-size:11px; padding: 6px 12px;" onclick="clearSessionDateFilter()">
+                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                                        Clear Filter
+                                    </button>
+                                    <button class="print-session-btn" style="font-size:11px; padding: 6px 12px;" onclick="printSessions()">
+                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                        Print Audits
+                                    </button>
+                                </div>
+                            </div>
+
+                            <table class="pending-table accessible-audit-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:5%; margin-left: 20%;">#</th>
+                                        <th style="width:26%;">Administrator Details</th>
+                                        <th style="width:26%;">Login Date & Time</th>
+                                        <th style="width:27%;">Logout Date & Time</th>
+                                        <th style="width:15%; text-align: center; margin-right: 20%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sessions-tbody">
+                                    <tr><td colspan="5" class="empty-history" style="font-size: 13px;">Loading session audit records...</td></tr>
+                                </tbody>
+                            </table>
+
+                            <div id="audit-pagination-container" style="display: none; text-align: center; padding: 12px; border-top: 1px solid var(--border-soft); background: var(--bg-deep);">
+                                <button id="view-more-audit-btn" onclick="loadMoreSessions()" style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: var(--radius-md); padding: 7px 18px; cursor: pointer; transition: all 0.2s;">
+                                    View More Logs 
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINT HIDDEN AREA -->
+    <div id="print-area">
+        <div class="print-header">
+            <h1 id="print-title">iPark Report</h1>
+            <p>Generated: <span id="print-date"></span></p>
+            <p id="print-subtitle" style="margin-top:4px; font-weight:600;"></p>
+        </div>
+        <table id="print-table">
+            <thead id="print-thead"></thead>
+            <tbody id="print-tbody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        /* ── Firebase Initialization ── */
+        const firebaseConfig = {
+            apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
+            databaseURL: "https://ipark-ultrasonic-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId:   "ipark-ultrasonic",
+            appId:       "1:1024113272044:web:d200b4b1dba5c04f4bf1c9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db   = firebase.database();
+
+        const ALL_SLOTS = ['L1','M1','M2','M3','M4','M5','M6','M7','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13'];
+        
+        let globalSlotsState = {};
+        let globalHistoryState = {};
+        let currentSlot = null; 
+        let isAllSlots = true;
+        let activeDateKey = null;
+        let activeSessionDateKey = null;
+        let liveTimerInterval = null;
+        let currentHistoryData = [];
+        let rawSessionsList = [];
+        let currentFilteredSessions = [];
+        let currentSessionRefId = null;
+
+        const SVG_ICONS = {
+            dashboard: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
+            history: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`,
+            accounts: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+        };
+
+        function parseTimestamp(ts) {
+            if (!ts) return null;
+            if (typeof ts === 'number') return ts;
+            const parsed = Date.parse(ts);
+            return isNaN(parsed) ? null : parsed;
+        }
+
+        function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+        function todayKey() { return dateKey(new Date()); }
+        function formatTime(ts) { 
+            const t = parseTimestamp(ts);
+            return t ? `<span class="time-val">${new Date(t).toLocaleTimeString('en-PH')}</span>` : '<span class="time-val empty">—</span>'; 
+        }
+        function durStr(tIn, tOut) { 
+            const start = parseTimestamp(tIn);
+            if(!start) return '—'; 
+            const end = parseTimestamp(tOut) || Date.now();
+            const s = Math.floor((end - start)/1000); 
+            if (s < 0) return '0s';
+            const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; 
+            return h>0?`${h}h ${m}m ${sec}s` : m>0?`${m}m ${sec}s` : `${sec}s`; 
+        }
+
+        /* ── Authentication Handlers ── */
+        auth.onAuthStateChanged(user => {
+            if (!user) { window.location.href = 'admin_signin.html'; return; }
+
+            db.ref('adminUsers/' + user.uid).on('value', snap => {
+                const data = snap.val();
+
+                if (!data) {
+                    auth.signOut().then(() => {
+                        localStorage.clear();
+                        window.location.href = 'admin_signin.html';
+                    });
+                    return;
+                }
+
+                const name = data.name || user.email;
+                const username = data.username || 'N/A';
+                const role = data.role || 'admin';
+
+                document.getElementById('acct-name').textContent = name;
+                document.getElementById('acct-hero-username').textContent = 'Username: ' + username;
+                document.getElementById('acct-hero-email').textContent = 'Email: ' + user.email;
+
+                const roleBadge = document.getElementById('role-display-badge');
+                if (role === 'main_admin') {
+                    roleBadge.innerHTML = `<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg> Main Administrator`;
+                    roleBadge.style.color = "var(--purple)";
+                    roleBadge.style.background = "var(--purple-soft)";
+                    document.getElementById('superadmin-management-blocks').style.display = 'block';
+                    loadAdminSessions();
+                    loadActiveAdmins();
+                    loadPendingAdmins();
+                } else {
+                    roleBadge.innerHTML = `<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Administrator`;
+                    document.getElementById('superadmin-management-blocks').style.display = 'none';
+                }
+
+                const storedSessionId = localStorage.getItem('adminSessionId');
+                if (!storedSessionId) {
+                    const logRef = db.ref('adminSessions').push();
+                    currentSessionRefId = logRef.key;
+                    localStorage.setItem('adminSessionId', currentSessionRefId);
+                    logRef.set({
+                        uid: user.uid, name: name, username: username, email: user.email,
+                        loginTime: Date.now(), logoutTime: null, role: role, sessionId: logRef.key
+                    });
+                } else {
+                    currentSessionRefId = storedSessionId;
+                }
+            });
+        });
+
+        /* ── Real-Time Listeners ── */
+        db.ref('/parkingSlots').on('value', snap => {
+            globalSlotsState = snap.val() || {};
+            renderDashboardUI();
+            processCombinedHistory();
+        });
+
+        db.ref('/history').on('value', snap => {
+            globalHistoryState = snap.val() || {};
+            renderTodayStats();
+            processCombinedHistory();
+        });
+
+        db.ref('/parkingHistory').on('value', snap => {
+            if (!Object.keys(globalHistoryState).length) {
+                globalHistoryState = snap.val() || {};
+                renderTodayStats();
+                processCombinedHistory();
+            }
+        });
+
+        /* ── Render Dashboard UI ── */
+        function renderDashboardUI() {
+            let av = 0, oc = 0;
+            document.querySelectorAll('#slot-tbody tr').forEach(row => {
+                const id = row.dataset.slot; 
+                const sData = globalSlotsState[id] || {}; 
+                const occupied = sData.occupied === true || sData.status === 'occupied';
+
+                row.dataset.status = occupied ? 'occupied' : 'available';
+                row.querySelector('.col-status').innerHTML = occupied ? 
+                    '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
+                    '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
+                row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
+
+                if(occupied) oc++; else av++;
+            });
+
+            document.getElementById('stat-available').textContent = av; 
+            document.getElementById('stat-occupied').textContent = oc;
+            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
+            document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
+            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
+            document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
+        }
+
+        function renderTodayStats() {
+            let count = 0; 
+            const tk = todayKey();
+            Object.values(globalHistoryState).forEach(slots => { 
+                Object.values(slots || {}).forEach(r => { 
+                    const tIn = parseTimestamp(r.timeIn);
+                    if(tIn && dateKey(new Date(tIn)) === tk) count++; 
+                });
+            });
+            document.getElementById('stat-today').textContent = count; 
+            document.getElementById('stat-today-date').textContent = new Date().toLocaleDateString('en-PH');
+            document.getElementById('stat-today-bar').style.width = `${Math.min((count/21)*100, 100)}%`;
+        }
+
+        /* ── History Synchronizer ── */
+        function processCombinedHistory() {
+            const combined = [];
+
+            Object.entries(globalHistoryState).forEach(([sId, recs]) => {
+                if (isAllSlots || sId === currentSlot) {
+                    if (typeof recs === 'object' && recs !== null) {
+                        Object.values(recs).forEach(r => {
+                            if (r && r.timeIn) {
+                                combined.push({
+                                    ...r,
+                                    _slot: sId,
+                                    timeIn: parseTimestamp(r.timeIn),
+                                    timeOut: parseTimestamp(r.timeOut)
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+
+            const targetSlots = isAllSlots ? ALL_SLOTS : [currentSlot];
+            targetSlots.forEach(sId => {
+                const sData = globalSlotsState[sId];
+                if (sData && (sData.occupied === true || sData.status === 'occupied') && sData.timeIn) {
+                    const parsedTimeIn = parseTimestamp(sData.timeIn);
+                    const exists = combined.some(r => r._slot === sId && r.timeIn === parsedTimeIn);
+                    if (!exists) {
+                        combined.push({
+                            _slot: sId,
+                            timeIn: parsedTimeIn,
+                            timeOut: null
+                        });
+                    }
+                }
+            });
+
+            const sorted = combined.sort((a, b) => (b.timeIn || 0) - (a.timeIn || 0));
+            renderHistoryTable(sorted);
+        }
+
+        function renderHistoryTable(records) {
+            let filtered = records;
+            if (activeDateKey) {
+                filtered = records.filter(r => r.timeIn && dateKey(new Date(r.timeIn)) === activeDateKey);
+            }
+            currentHistoryData = filtered;
+
+            document.getElementById('active-filter-tag').style.display = activeDateKey ? 'inline-block' : 'none';
+            document.getElementById('active-filter-tag').textContent = activeDateKey;
+            document.getElementById('history-count-chip').textContent = `${filtered.length} records`;
+
+            document.getElementById('history-thead').innerHTML = isAllSlots 
+                ? '<tr><th style="width:8%;">#</th><th style="width:15%;">Slot</th><th style="width:20%;">Date</th><th style="width:20%;">Time In</th><th style="width:20%;">Time Out</th><th style="width:17%;">Duration</th></tr>' 
+                : '<tr><th style="width:10%;">#</th><th style="width:25%;">Date</th><th style="width:25%;">Time In</th><th style="width:25%;">Time Out</th><th style="width:15%;">Duration</th></tr>';
+
+            const tbody = document.getElementById('history-table-body');
+            if (!filtered.length) { 
+                tbody.innerHTML = `<tr><td colspan="${isAllSlots ? 6 : 5}" class="empty-history">No history logs found.</td></tr>`; 
+                return; 
+            }
+
+            tbody.innerHTML = filtered.map((r, i) => {
+                const d = new Date(r.timeIn);
+                const isOccupied = !r.timeOut;
+                
+                return `<tr>
+                    <td>${i + 1}</td>
+                    ${isAllSlots ? `<td><span class="slot-pill">${r._slot}</span></td>` : ''}
+                    <td>${d.toLocaleDateString('en-PH')}</td>
+                    <td>${d.toLocaleTimeString('en-PH')}</td>
+                    <td>${isOccupied ? '<span class="time-val empty">Active</span>' : new Date(r.timeOut).toLocaleTimeString('en-PH')}</td>
+                    <td><span class="duration-cell" data-timein="${r.timeIn}" data-timeout="${r.timeOut || ''}">${durStr(r.timeIn, r.timeOut)}</span></td>
+                </tr>`;
+            }).join('');
+
+            startLiveTimer();
+        }
+
+        function startLiveTimer() {
+            if (liveTimerInterval) clearInterval(liveTimerInterval);
+            liveTimerInterval = setInterval(() => {
+                const cells = document.querySelectorAll('.duration-cell');
+                cells.forEach(cell => {
+                    const timeIn = parseInt(cell.getAttribute('data-timein'), 10);
+                    const timeOutStr = cell.getAttribute('data-timeout');
+                    if (!timeOutStr && timeIn) {
+                        cell.textContent = durStr(timeIn, null);
+                    }
+                });
+            }, 1000);
+        }
+
+        /* ── Slot Chip Filters ── */
+        const cc = document.getElementById('slot-chips');
+        cc.innerHTML = '';
+        const ac = document.createElement('button'); 
+        ac.className = 'slot-filter-chip allslots active'; 
+        ac.textContent = 'All Slots';
+        ac.onclick = () => { 
+            document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
+            ac.classList.add('active'); 
+            currentSlot = null; isAllSlots = true; 
+            document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} All Slots`;
+            processCombinedHistory(); 
+        };
+        cc.appendChild(ac);
+
+        ALL_SLOTS.forEach(s => {
+            const c = document.createElement('button'); 
+            c.className = 'slot-filter-chip'; 
+            c.textContent = s;
+            c.onclick = () => { 
+                document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
+                c.classList.add('active'); 
+                currentSlot = s; isAllSlots = false; 
+                document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} Slot ${s}`;
+                processCombinedHistory(); 
+            };
+            cc.appendChild(c);
+        });
+
+        function applyDateSearch() { activeDateKey = document.getElementById('date-search').value || null; processCombinedHistory(); }
+        function clearDateFilter() { activeDateKey = null; document.getElementById('date-search').value = ''; processCombinedHistory(); }
+
+        /* ── Nav & Filters ── */
+        function showPage(page) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.getElementById('nav-'  + page).classList.add('active');
+            
+            const pageData = {
+                dashboard: { title: 'Parking Overview', icon: SVG_ICONS.dashboard },
+                history: { title: 'Slot History Logs', icon: SVG_ICONS.history },
+                accounts: { title: 'Account Profile & Settings', icon: SVG_ICONS.accounts }
+            };
+            
+            document.getElementById('topbar-title').innerHTML = `${pageData[page].icon} ${pageData[page].title}`;
+        }
+
+        document.getElementById('search').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = r.dataset.slot.toLowerCase().includes(q) ? '' : 'none');
+        });
+        document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); this.classList.add('active');
+            const f = this.dataset.filter; document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = (f==='all' || r.dataset.status===f)?'':'none');
+        }));
+
+        /* ── Active Admin Accounts Management ── */
+        function loadActiveAdmins() {
+            db.ref('/adminUsers').on('value', snap => {
+                const list = Object.entries(snap.val() || {})
+                    .map(([uid, d]) => ({ uid, ...d }))
+                    .filter(a => a.role !== 'main_admin' && a.username && a.username.trim() !== '' && a.username !== 'N/A');
+
+                document.getElementById('admin-count-badge').textContent = `${list.length} Admin(s)`;
+                const tbody = document.getElementById('active-admins-tbody');
+
+                if (!list.length) {
+                    tbody.innerHTML = `<tr><td colspan="5" class="empty-history">No active sub-administrator accounts found.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = list.map((a, i) => `<tr>
+                    <td>${i+1}</td>
+                    <td>${a.name || '—'}</td>
+                    <td>@${a.username}</td>
+                    <td>${a.email || '—'}</td>
+                    <td style="text-align: center;">
+                        <button class="delete-btn" onclick="confirmDeleteAdmin('${a.uid}', '${a.name || a.username}')">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            Delete Account
+                        </button>
+                    </td>
+                </tr>`).join('');
+            });
+        }
+
+        let deleteAdminUid = null;
+        function confirmDeleteAdmin(uid, name) {
+            deleteAdminUid = uid;
+            document.getElementById('delete-admin-desc').textContent = `Are you sure you want to delete administrator account "${name}"?\nThey will lose all access immediately and won't be able to log in again.`;
+            document.getElementById('modal-delete-admin').classList.add('visible');
+        }
+
+        document.getElementById('delete-admin-cancel').onclick = () => document.getElementById('modal-delete-admin').classList.remove('visible');
+        document.getElementById('delete-admin-confirm').onclick = () => {
+            if (!deleteAdminUid) return;
+            
+            const updates = {};
+            updates['/adminUsers/' + deleteAdminUid] = null;
+            updates['/pendingAdmins/' + deleteAdminUid] = null;
+
+            db.ref('adminSessions').orderByChild('uid').equalTo(deleteAdminUid).once('value', snap => {
+                const sessions = snap.val() || {};
+                Object.keys(sessions).forEach(sId => {
+                    if (!sessions[sId].logoutTime) {
+                        updates['/adminSessions/' + sId + '/logoutTime'] = Date.now();
+                        updates['/adminSessions/' + sId + '/status'] = 'revoked';
+                    }
+                });
+
+                db.ref().update(updates).then(() => {
+                    document.getElementById('modal-delete-admin').classList.remove('visible');
+                    deleteAdminUid = null;
+                });
+            });
+        };
+
+        /* ── Admin Sessions Pagination & Search ── */
+        let sessionsPageSize = 5; 
+
+        function loadAdminSessions() {
+            db.ref('/adminSessions').on('value', snap => {
+                const list = Object.values(snap.val() || {})
+                    .filter(s => s.role !== 'main_admin' && s.username && s.username.trim() !== '' && s.username !== 'N/A')
+                    .sort((a,b) => (b.loginTime || 0) - (a.loginTime || 0));
+                
+                rawSessionsList = list;
+                renderAdminSessionsTable();
+            });
+        }
+
+        function renderAdminSessionsTable() {
+            let filtered = rawSessionsList;
+            if (activeSessionDateKey) {
+                filtered = rawSessionsList.filter(s => s.loginTime && dateKey(new Date(s.loginTime)) === activeSessionDateKey);
+            }
+            currentFilteredSessions = filtered;
+
+            const tbody = document.getElementById('sessions-tbody');
+            const paginationContainer = document.getElementById('audit-pagination-container');
+
+            if (!filtered.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="empty-history" style="font-size:13px;">No audit logs found matching your criteria.</td></tr>`;
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            const visibleSessions = filtered.slice(0, sessionsPageSize);
+
+            tbody.innerHTML = visibleSessions.map((s, i) => {
+                const loginDt = s.loginTime ? new Date(s.loginTime) : null;
+                const logoutDt = s.logoutTime ? new Date(s.logoutTime) : null;
+
+                const loginFormatted = loginDt 
+                    ? `<div class="audit-time-cell">
+                        <span>${loginDt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span class="audit-time-divider">•</span>
+                        <span>${loginDt.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                       </div>`
+                    : '<span class="time-val empty" style="font-size:12px;">—</span>';
+
+                const logoutFormatted = logoutDt 
+                    ? `<div class="audit-time-cell">
+                        <span>${logoutDt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        <span class="audit-time-divider">•</span>
+                        <span>${logoutDt.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                       </div>`
+                    : '<span class="time-val empty" style="font-size:12px; color:var(--accent);">Active Session</span>';
+
+                const statusBadge = !s.logoutTime 
+                    ? '<span class="audit-badge active"><span class="status-dot"></span>Active</span>'
+                    : '<span class="audit-badge signed-out">Signed Out</span>';
+
+                return `<tr>
+                    <td style="font-family: var(--mono); color: var(--text-secondary); font-size: 12px; font-weight: 600;">${i + 1}</td>
+                    <td>
+                        <div class="audit-user-cell">
+                            <span class="audit-user-name">${s.name || 'Unknown User'}</span>
+                            <div class="audit-user-meta">
+                                <span>@${s.username || 'n/a'}</span>
+                                <span style="color: var(--text-muted);">|</span>
+                                <span class="audit-user-email">${s.email || 'No email provided'}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${loginFormatted}</td>
+                    <td>${logoutFormatted}</td>
+                    <td style="text-align: center;">${statusBadge}</td>
+                </tr>`;
+            }).join('');
+
+            if (filtered.length > sessionsPageSize) {
+                paginationContainer.style.display = 'block';
+            } else {
+                paginationContainer.style.display = 'none';
+            }
+        }
+
+        function loadMoreSessions() {
+            sessionsPageSize += 5;
+            renderAdminSessionsTable();
+        }
+
+        function applySessionDateSearch() {
+            activeSessionDateKey = document.getElementById('session-date-search').value || null;
+            sessionsPageSize = 5;
+            renderAdminSessionsTable();
+        }
+
+        function clearSessionDateFilter() {
+            activeSessionDateKey = null;
+            document.getElementById('session-date-search').value = '';
+            sessionsPageSize = 5;
+            renderAdminSessionsTable();
+        }
+
+        /* ── Pending Applications ── */
+        function loadPendingAdmins() {
+            db.ref('/pendingAdmins').on('value', snap => {
+                const list = Object.entries(snap.val()||{})
+                    .map(([uid, d]) => ({ uid, ...d }))
+                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A');
+
+                const pendingCard = document.getElementById('pending-card-container');
+
+                if (list.length === 0) {
+                    pendingCard.style.display = 'none';
+                } else {
+                    pendingCard.style.display = 'block';
+                }
+
+                document.getElementById('pending-count-badge').textContent = `${list.length} Pending Approval`;
+                document.getElementById('pending-tbody').innerHTML = list.length ? list.map((a, i) => `<tr>
+                    <td>${i+1}</td>
+                    <td>${a.name || '—'}</td>
+                    <td>@${a.username}</td>
+                    <td>${a.email || '—'}</td>
+                    <td>${a.requestedAt ? new Date(a.requestedAt).toLocaleDateString('en-PH') : '—'}</td>
+                    <td>
+                        <div class="action-btn-group">
+                            <button class="approve-btn" onclick="approveAdmin('${a.uid}','${a.name}','${a.username}','${a.email}')">
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                                Approve
+                            </button>
+                            <button class="reject-btn" onclick="rejectAdmin('${a.uid}','${a.name}')">
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                                Reject
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join('') : `<tr><td colspan="6" class="empty-history">No access requests pending.</td></tr>`;
+            });
+        }
+
+        let pendingUid = null, pendingData = null, rejectUid = null;
+        function approveAdmin(uid, name, username, email) {
+            pendingUid = uid; pendingData = { name, username, email, role: 'admin' };
+            document.getElementById('approve-desc').textContent = `Authorize access profile permissions for "${name}" (@${username})?`;
+            document.getElementById('modal-approve').classList.add('visible');
+        }
+        function rejectAdmin(uid, name) {
+            rejectUid = uid;
+            document.getElementById('reject-desc').textContent = `Permanently delete registration for "${name}"?`;
+            document.getElementById('modal-reject').classList.add('visible');
+        }
+        document.getElementById('approve-cancel').onclick = () => document.getElementById('modal-approve').classList.remove('visible');
+        document.getElementById('reject-cancel').onclick = () => document.getElementById('modal-reject').classList.remove('visible');
+        document.getElementById('approve-confirm').onclick = () => {
+            if(!pendingUid) return;
+            const up = {}; up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true }; up['/pendingAdmins/'+pendingUid] = null;
+            db.ref().update(up); document.getElementById('modal-approve').classList.remove('visible');
+        };
+        document.getElementById('reject-confirm').onclick = () => {
+            if(!rejectUid) return;
+            db.ref('/pendingAdmins/'+rejectUid).remove(); document.getElementById('modal-reject').classList.remove('visible');
+        };
+
+        /* ── Sign Out Logic ── */
+        document.getElementById('signout-sidebar-btn').onclick = () => document.getElementById('modal-signout').classList.add('visible');
+        document.getElementById('signout-cancel').onclick = () => document.getElementById('modal-signout').classList.remove('visible');
+        document.getElementById('signout-confirm').onclick = () => {
+            if (currentSessionRefId) db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
+            auth.signOut().then(() => { localStorage.clear(); window.location.href = 'admin_signin.html'; });
+        };
+
+        /* ── Print Utilities ── */
+        function printHistory() {
+            if (!currentHistoryData.length) return alert('No history data to print.');
+            
+            document.getElementById('print-title').textContent = 'iPark History Report';
+            document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
+            document.getElementById('print-subtitle').textContent = activeDateKey ? `Filtered by Date: ${activeDateKey}` : 'All Historical Logs';
+            
+            document.getElementById('print-thead').innerHTML = isAllSlots 
+                ? '<tr><th>#</th><th>Slot</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>' 
+                : '<tr><th>#</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>';
+            
+            document.getElementById('print-tbody').innerHTML = currentHistoryData.map((r, i) => {
+                const d = new Date(r.timeIn);
+                return `<tr>
+                    <td>${i+1}</td>
+                    ${isAllSlots ? `<td>${r._slot}</td>` : ''}
+                    <td>${d.toLocaleDateString('en-PH')}</td>
+                    <td>${d.toLocaleTimeString('en-PH')}</td>
+                    <td>${r.timeOut ? new Date(r.timeOut).toLocaleTimeString('en-PH') : 'Still Occupied'}</td>
+                    <td>${durStr(r.timeIn, r.timeOut)}</td>
+                </tr>`;
+            }).join('');
+            
+            const p = document.getElementById('print-area');
+            p.style.display = 'block';
+            p.classList.add('visible-on-screen');
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    p.style.display = 'none';
+                    p.classList.remove('visible-on-screen');
+                }, 500);
+            }, 300);
+        }
+
+        function printSessions() {
+            if (!currentFilteredSessions.length) return alert('No session logs to print.');
+            
+            document.getElementById('print-title').textContent = 'iPark Admin Audit Report';
+            document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
+            document.getElementById('print-subtitle').textContent = activeSessionDateKey ? `Filtered by Sign-In Date: ${activeSessionDateKey}` : 'All Admin Audit Records';
+            
+            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
+            
+            document.getElementById('print-tbody').innerHTML = currentFilteredSessions.map((s, i) => {
+                const loginDt = s.loginTime ? new Date(s.loginTime) : null;
+                const logoutDt = s.logoutTime ? new Date(s.logoutTime) : null;
+                
+                return `<tr>
+                    <td>${i+1}</td>
+                    <td>${s.name || 'Unknown'}</td>
+                    <td>${s.username || 'N/A'}</td>
+                    <td>${s.email || '—'}</td>
+                    <td>${loginDt ? loginDt.toLocaleString('en-PH') : '—'}</td>
+                    <td>${logoutDt ? logoutDt.toLocaleString('en-PH') : '—'}</td>
+                    <td>${s.logoutTime ? 'Signed Out' : 'Active'}</td>
+                </tr>`;
+            }).join('');
+            
+            const p = document.getElementById('print-area');
+            p.style.display = 'block';
+            p.classList.add('visible-on-screen');
+            
+            setTimeout(() => {
+                window.print();
+                setTimeout(() => {
+                    p.style.display = 'none';
+                    p.classList.remove('visible-on-screen');
+                }, 500);
+            }, 300);
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (currentSessionRefId) db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
+        });
+    </script>
+</body>
+</html>

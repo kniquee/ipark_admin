@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iPark Admin — Access Portal</title>
+
+    <!-- Typography & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase Legacy SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #070d14;
+            --card-bg: rgba(18, 29, 43, 0.75);
+            --border-color: rgba(56, 189, 248, 0.15);
+            --border-hover: rgba(56, 189, 248, 0.4);
+            --primary: #38bdf8;
+            --primary-glow: rgba(56, 189, 248, 0.35);
+            --primary-hover: #7ec8f0;
+            --text-main: #f1f5f9;
+            --text-muted: #64748b;
+            --text-sub: #94a3b8;
+            --error-color: #f87171;
+            --error-bg: rgba(248, 113, 113, 0.1);
+            --success-color: #34d399;
+            --success-bg: rgba(52, 211, 153, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Syne', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Grid Overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(31, 51, 72, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(31, 51, 72, 0.3) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ambient Glow Effect */
+        .ambient-glow {
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(7, 13, 20, 0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseGlow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes pulseGlow {
+            0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.85; }
+        }
+
+        .auth-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* Glassmorphism Card Style */
+        .auth-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 10px 36px 40px; /* Reduced top padding from 40px to 30px */
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.56), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            display: none;
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .auth-card.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        /* Centered Logo Image Styling */
+        .brand-logo-img {
+            max-height: 100px; /* Adjust size as needed */
+            width: auto;
+            display: block;
+            margin: 0 auto -10px auto; /* Centers image and gives tight bottom margin */
+            filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(1455%) hue-rotate(167deg) brightness(101%) contrast(96%);
+        }
+
+        .brand-sub {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: color 0.2s ease;
+            pointer-events: none;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(11, 21, 32, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 13px 16px 13px 40px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .form-input::placeholder {
+            color: rgba(100, 116, 139, 0.6);
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            background: rgba(11, 21, 32, 0.85);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        .form-input:focus + .input-icon,
+        .input-wrapper:focus-within .input-icon {
+            color: var(--primary);
+        }
+
+        .form-input.field-error {
+            border-color: var(--error-color) !important;
+            box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.15) !important;
+        }
+
+        .auth-btn {
+            width: 100%;
+            background: var(--primary);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'Syne', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
+        }
+
+        .auth-btn:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .auth-btn:active {
+            transform: translateY(0);
+        }
+
+        .auth-btn:disabled {
+            background: rgba(31, 51, 72, 0.6);
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Spinner animation */
+        .auth-btn.loading .btn-text,
+        .auth-btn.loading i {
+            display: none;
+        }
+
+        .auth-btn.loading::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--bg-dark);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .auth-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .auth-link:hover {
+            color: var(--primary-hover);
+            text-decoration: underline;
+        }
+
+        .forgot-pass-wrapper {
+            text-align: right;
+            margin-top: -8px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-link {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-link:hover {
+            color: var(--primary);
+        }
+
+        /* Status Messages */
+        .status-message {
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.5;
+            align-items: flex-start;
+            gap: 10px;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .status-message.error {
+            background: var(--error-bg);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--error-color);
+        }
+
+        .status-message.success {
+            background: var(--success-bg);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: var(--success-color);
+        }
+
+        .status-message.visible {
+            display: flex;
+        }
+
+        .status-icon {
+            font-size: 14px;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-glow"></div>
+
+    <div class="auth-container">
+
+        <!-- ══ VIEW 1: SIGN IN ══ -->
+        <div class="auth-card visible" id="view-signin">
+            <div class="brand-header">
+                <img src="logo.png" alt="iPark Logo" class="brand-logo-img">
+                <div class="brand-sub"><i class="fa-solid fa-shield-halved"></i> Admin Portal</div>
+            </div>
+
+            <div class="status-message error" id="signin-error-msg">
+                <i class="fa-solid fa-circle-exclamation status-icon"></i>
+                <span class="status-text"></span>
+            </div>
+            <div class="status-message success" id="signin-success-msg">
+                <i class="fa-solid fa-circle-check status-icon"></i>
+                <span class="status-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="login-username">Username</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="login-username" type="text" placeholder="Enter username" autocomplete="username">
+                    <i class="fa-regular fa-user input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label class="form-label" for="login-password">Password</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                </div>
+            </div>
+
+            <div class="forgot-pass-wrapper">
+                <span class="forgot-link" onclick="showView('view-forgot')">Forgot Password?</span>
+            </div>
+
+            <button class="auth-btn" id="signin-btn">
+                <span class="btn-text">Sign In</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <div class="auth-switch">
+                Need access? <span class="auth-link" onclick="showView('view-register')">Request Account</span>
+            </div>
+        </div>
+
+        <!-- ══ VIEW 2: REGISTER / REQUEST ACCESS ══ -->
+        <div class="auth-card" id="view-register">
+            <div class="brand-header">
+                <img src="logo.png" alt="iPark Logo" class="brand-logo-img">
+                <div class="brand-sub"><i class="fa-solid fa-user-plus"></i> Access Request</div>
+            </div>
+
+            <div class="status-message error" id="register-error-msg">
+                <i class="fa-solid fa-circle-exclamation status-icon"></i>
+                <span class="status-text"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-name">Full Name</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="reg-name" type="text" placeholder="iPark">
+                    <i class="fa-regular fa-id-card input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-username">Username</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="reg-username" type="text" placeholder="ipark1" style="font-family:'DM Mono', monospace;">
+                    <i class="fa-regular fa-user input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-email">Email Address</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="reg-email" type="email" placeholder="admin@email.com">
+                    <i class="fa-regular fa-envelope input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-password">Password</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="reg-password" type="password" placeholder="Min. 6 characters">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-confirm">Confirm Password</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="reg-confirm" type="password" placeholder="Re-type password">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                </div>
+            </div>
+
+            <button class="auth-btn" id="register-btn">
+                <span class="btn-text">Submit Request</span>
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+
+            <div class="auth-switch">
+                Already registered? <span class="auth-link" onclick="showView('view-signin')">Sign In</span>
+            </div>
+        </div>
+
+        <!-- ══ VIEW 3: FORGOT PASSWORD ══ -->
+        <div class="auth-card" id="view-forgot">
+            <div class="brand-header">
+                <img src="logo.png" alt="iPark Logo" class="brand-logo-img">
+                <div class="brand-sub"><i class="fa-solid fa-key"></i> Password Recovery</div>
+            </div>
+
+            <div class="status-message error" id="forgot-error-msg">
+                <i class="fa-solid fa-circle-exclamation status-icon"></i>
+                <span class="status-text"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 24px;">
+                <label class="form-label" for="forgot-email">Account Email Address</label>
+                <div class="input-wrapper">
+                    <input class="form-input" id="forgot-email" type="email" placeholder="name@domain.com">
+                    <i class="fa-regular fa-envelope input-icon"></i>
+                </div>
+            </div>
+
+            <button class="auth-btn" id="forgot-btn">
+                <span class="btn-text">Send Reset Link</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <div class="auth-switch">
+                Remembered details? <span class="auth-link" onclick="showView('view-signin')">Back to Sign In</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ── Firebase Config ── */
+        const firebaseConfig = {
+            apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
+            databaseURL: "https://ipark-ultrasonic-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId:   "ipark-ultrasonic",
+            appId:       "1:1024113272044:web:d200b4b1dba5c04f4bf1c9"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db   = firebase.database();
+
+        /* ── Helper for Status Messages ── */
+        function setStatus(elementId, text) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            const parentCard = el.closest('.auth-card');
+            if (parentCard) {
+                parentCard.querySelectorAll('.status-message').forEach(msg => {
+                    msg.classList.remove('visible');
+                    const txt = msg.querySelector('.status-text');
+                    if (txt) txt.textContent = '';
+                });
+            }
+
+            const textSpan = el.querySelector('.status-text');
+            if (textSpan) textSpan.textContent = text;
+
+            if (text) {
+                el.classList.add('visible');
+            } else {
+                el.classList.remove('visible');
+            }
+        }
+
+        /* ── View Switcher Logic ── */
+        function showView(viewId) {
+            document.querySelectorAll('.auth-card').forEach(card => {
+                card.classList.remove('visible');
+                setTimeout(() => { if(!card.classList.contains('visible')) card.style.display = 'none'; }, 300);
+            });
+            const target = document.getElementById(viewId);
+            target.style.display = 'block';
+            setTimeout(() => target.classList.add('visible'), 50);
+
+            document.querySelectorAll('.status-message').forEach(m => { 
+                m.classList.remove('visible'); 
+                const txt = m.querySelector('.status-text');
+                if (txt) txt.textContent = '';
+            });
+            document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
+        }
+
+        function friendlyError(code) {
+            switch(code) {
+                case 'auth/invalid-email':       return 'Invalid email address format.';
+                case 'auth/user-disabled':       return 'This administrator account has been disabled.';
+                case 'auth/user-not-found':      return 'Account not found in directory.';
+                case 'auth/wrong-password':      return 'Incorrect password provided.';
+                case 'auth/email-already-in-use':return 'Email address is already registered.';
+                case 'auth/weak-password':       return 'Password is too weak. Use at least 6 characters.';
+                default:                         return 'Authentication failed. Please verify credentials.';
+            }
+        }
+
+        /* ── Function to find user by username ── */
+        function findUserByUsername(username) {
+            return new Promise((resolve, reject) => {
+                db.ref('adminUsers').orderByChild('username').equalTo(username).once('value')
+                    .then(snap => {
+                        if (snap.exists()) {
+                            const users = snap.val();
+                            const uid = Object.keys(users)[0];
+                            const userData = users[uid];
+                            resolve({ uid, ...userData });
+                        } else {
+                            resolve(null);
+                        }
+                    })
+                    .catch(err => reject(err));
+            });
+        }
+
+        /* ── Function to create admin session (Time In) ── */
+        function createAdminSession(uid, name, email, role, username) {
+            const sessionsRef = db.ref('adminSessions');
+            const newSessionRef = sessionsRef.push();
+            
+            const sessionData = {
+                uid: uid,
+                name: name,
+                username: username || 'N/A',
+                email: email,
+                role: role,
+                loginTime: Date.now(),
+                logoutTime: null,
+                status: 'active',
+                date: new Date().toLocaleDateString('en-PH'),
+                loginTimeFormatted: new Date().toLocaleTimeString('en-PH'),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            return newSessionRef.set(sessionData).then(() => {
+                localStorage.setItem('adminSessionId', newSessionRef.key);
+                return newSessionRef.key;
+            });
+        }
+
+        /* ── Sign In Handler ── */
+        let isSigningIn = false;
+        function attemptSignIn() {
+            if (isSigningIn) return;
+            
+            const usernameEl = document.getElementById('login-username');
+            const passEl = document.getElementById('login-password');
+            const btn = document.getElementById('signin-btn');
+
+            setStatus('signin-error-msg', '');
+            usernameEl.classList.remove('field-error');
+            passEl.classList.remove('field-error');
+
+            const username = usernameEl.value.trim();
+            const password = passEl.value;
+
+            if (!username) { usernameEl.classList.add('field-error'); return; }
+            if (!password) { passEl.classList.add('field-error'); return; }
+
+            isSigningIn = true;
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            findUserByUsername(username)
+                .then(userData => {
+                    if (!userData) {
+                        setStatus('signin-error-msg', 'Username not found. Please verify your credentials.');
+                        usernameEl.classList.add('field-error');
+                        resetSignInBtn();
+                        return;
+                    }
+
+                    const email = userData.email;
+                    const name = userData.name || username;
+                    const role = userData.role || 'admin';
+
+                    return auth.signInWithEmailAndPassword(email, password)
+                        .then(userCredential => {
+                            const user = userCredential.user;
+                            return createAdminSession(user.uid, name, user.email, role, username)
+                                .then(() => {
+                                    localStorage.setItem('adminName', name);
+                                    localStorage.setItem('adminUsername', username);
+                                    localStorage.setItem('adminEmail', user.email);
+                                    localStorage.setItem('adminRole', role);
+                                    localStorage.setItem('adminUid', user.uid);
+                                    
+                                    window.location.href = 'admin4.html';
+                                });
+                        })
+                        .catch(err => {
+                            resetSignInBtn();
+                            if (err.code === 'auth/wrong-password') {
+                                setStatus('signin-error-msg', 'Incorrect password. Please try again.');
+                                passEl.classList.add('field-error');
+                            } else if (err.code === 'auth/user-not-found') {
+                                setStatus('signin-error-msg', 'Account details not found.');
+                                usernameEl.classList.add('field-error');
+                            } else {
+                                setStatus('signin-error-msg', friendlyError(err.code));
+                            }
+                        });
+                })
+                .catch(err => {
+                    resetSignInBtn();
+                    setStatus('signin-error-msg', 'An unexpected error occurred. Please try again.');
+                });
+        }
+
+        function resetSignInBtn() {
+            isSigningIn = false;
+            const btn = document.getElementById('signin-btn');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+
+        document.getElementById('signin-btn').addEventListener('click', attemptSignIn);
+        document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
+        document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
+
+        /* ── Registration Handler ── */
+        let isRegistering = false;
+        function attemptRegister() {
+            if (isRegistering) return;
+            const nameEl  = document.getElementById('reg-name');
+            const usernameEl = document.getElementById('reg-username');
+            const emailEl = document.getElementById('reg-email');
+            const passEl  = document.getElementById('reg-password');
+            const confEl  = document.getElementById('reg-confirm');
+            const btn     = document.getElementById('register-btn');
+
+            setStatus('register-error-msg', '');
+            [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.classList.remove('field-error'));
+
+            if (!nameEl.value.trim())  { nameEl.classList.add('field-error'); return; }
+            if (!usernameEl.value.trim()) { usernameEl.classList.add('field-error'); return; }
+            if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
+            if (!passEl.value)         { passEl.classList.add('field-error'); return; }
+            if (passEl.value !== confEl.value) { 
+                confEl.classList.add('field-error'); 
+                setStatus('register-error-msg', 'Passwords do not match.'); 
+                return; 
+            }
+
+            findUserByUsername(usernameEl.value.trim())
+                .then(existingUser => {
+                    if (existingUser) {
+                        setStatus('register-error-msg', 'Username already taken. Please choose another.');
+                        usernameEl.classList.add('field-error');
+                        return;
+                    }
+                    return proceedWithRegistration();
+                })
+                .catch(() => {
+                    proceedWithRegistration();
+                });
+
+            function proceedWithRegistration() {
+                isRegistering = true;
+                btn.classList.add('loading');
+                btn.disabled = true;
+
+                auth.createUserWithEmailAndPassword(emailEl.value.trim(), passEl.value)
+                    .then(userCredential => {
+                        const uid = userCredential.user.uid;
+                        const requestData = {
+                            name: nameEl.value.trim(),
+                            username: usernameEl.value.trim(),
+                            email: emailEl.value.trim(),
+                            requestedAt: Date.now(),
+                            role: 'admin', 
+                            approved: false
+                        };
+
+                        return db.ref('pendingAdmins/' + uid).set(requestData).then(() => auth.signOut());
+                    })
+                    .then(() => {
+                        isRegistering = false;
+                        btn.classList.remove('loading');
+                        btn.disabled = false;
+                        
+                        showView('view-signin');
+                        setStatus('signin-success-msg', 'Registration submitted! Please await administrator approval.');
+                        
+                        [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.value = '');
+                    })
+                    .catch(err => {
+                        isRegistering = false;
+                        btn.classList.remove('loading');
+                        btn.disabled = false;
+                        setStatus('register-error-msg', friendlyError(err.code));
+                        if (err.code === 'auth/email-already-in-use') emailEl.classList.add('field-error');
+                    });
+            }
+        }
+
+        document.getElementById('register-btn').addEventListener('click', attemptRegister);
+        document.getElementById('reg-confirm').addEventListener('keydown', e => { if (e.key === 'Enter') attemptRegister(); });
+
+        /* ── Forgot Password Handler ── */
+        let isResetting = false;
+        function attemptReset() {
+            if (isResetting) return;
+            const emailEl = document.getElementById('forgot-email');
+            const btn     = document.getElementById('forgot-btn');
+
+            setStatus('forgot-error-msg', '');
+            emailEl.classList.remove('field-error');
+
+            if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
+
+            isResetting = true;
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            auth.sendPasswordResetEmail(emailEl.value.trim())
+                .then(() => {
+                    isResetting = false;
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+
+                    showView('view-signin');
+                    setStatus('signin-success-msg', 'Password reset instructions have been sent to your email.');
+                    emailEl.value = '';
+                })
+                .catch(err => {
+                    isResetting = false;
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    setStatus('forgot-error-msg', friendlyError(err.code));
+                    emailEl.classList.add('field-error');
+                });
+        }
+
+        document.getElementById('forgot-btn').addEventListener('click', attemptReset);
+        document.getElementById('forgot-email').addEventListener('keydown', e => { if (e.key === 'Enter') attemptReset(); });
+
+        /* ── Clear Messages on Input ── */
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('input', () => {
+                input.classList.remove('field-error');
+                const parentCard = input.closest('.auth-card');
+                if (parentCard) {
+                    parentCard.querySelectorAll('.status-message').forEach(msg => {
+                        msg.classList.remove('visible');
+                    });
+                }
+            });
+        });
+
+        /* ── Auto-login Check ── */
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                db.ref('adminUsers/' + user.uid).once('value', snap => {
+                    if (snap.exists()) {
+                        window.location.href = 'admin4.html';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
