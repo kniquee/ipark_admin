@@ -96,7 +96,6 @@
             width: auto;
             object-fit: contain;
             flex-shrink: 0;
-            /* Applies #38BDF8 color filter to logo */
             filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(1455%) hue-rotate(167deg) brightness(101%) contrast(96%);
         }
 
@@ -328,6 +327,11 @@
         .time-val { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text-primary); }
         .time-val.empty { color: var(--text-muted); font-style: italic; }
 
+        /* Role Badges */
+        .role-badge { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); text-transform: uppercase; letter-spacing: 0.5px; }
+        .role-badge.main-admin { background: var(--purple-soft); color: var(--purple); border: 1px solid var(--purple-border); }
+        .role-badge.admin { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
+
         /* ============================================
            HISTORY PAGE STYLES
            ============================================ */
@@ -414,6 +418,7 @@
         .reject-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
         .delete-btn  { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: var(--radius-sm); background: var(--red-soft); border: 1px solid var(--red-border); color: var(--red); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .delete-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
+        .delete-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
         .print-history-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
         .print-history-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
@@ -701,7 +706,7 @@
                             <div class="pending-header">
                                 <div>
                                     <div class="section-title">
-                                        <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         Admin Accounts
                                     </div>
                                 </div>
@@ -710,15 +715,16 @@
                             <table class="pending-table">
                                 <thead>
                                     <tr>
-                                        <th style="width:6%;">#</th>
-                                        <th style="width:24%;">Full Name</th>
-                                        <th style="width:20%;">Username</th>
-                                        <th style="width:30%;">Email Address</th>
-                                        <th style="width:20%; text-align: center;">Actions</th>
+                                        <th style="width:5%;">#</th>
+                                        <th style="width:20%;">Full Name</th>
+                                        <th style="width:18%;">Username</th>
+                                        <th style="width:25%;">Email Address</th>
+                                        <th style="width:15%;">Role</th>
+                                        <th style="width:17%; text-align: center;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="active-admins-tbody">
-                                    <tr><td colspan="5" class="empty-history">Loading active administrators...</td></tr>
+                                    <tr><td colspan="6" class="empty-history">Loading active administrators...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -841,6 +847,7 @@
         let rawSessionsList = [];
         let currentFilteredSessions = [];
         let currentSessionRefId = null;
+        let currentActiveUid = null;
 
         const SVG_ICONS = {
             dashboard: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
@@ -874,6 +881,7 @@
         /* ── Authentication Handlers ── */
         auth.onAuthStateChanged(user => {
             if (!user) { window.location.href = 'admin_signin.html'; return; }
+            currentActiveUid = user.uid;
 
             db.ref('adminUsers/' + user.uid).on('value', snap => {
                 const data = snap.val();
@@ -1138,33 +1146,48 @@
             db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val() || {})
                     .map(([uid, d]) => ({ uid, ...d }))
-                    .filter(a => a.role !== 'main_admin' && a.username && a.username.trim() !== '' && a.username !== 'N/A');
+                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A');
 
                 document.getElementById('admin-count-badge').textContent = `${list.length} Admin(s)`;
                 const tbody = document.getElementById('active-admins-tbody');
 
                 if (!list.length) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="empty-history">No active sub-administrator accounts found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-history">No active administrator accounts found.</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = list.map((a, i) => `<tr>
-                    <td>${i+1}</td>
-                    <td>${a.name || '—'}</td>
-                    <td>@${a.username}</td>
-                    <td>${a.email || '—'}</td>
-                    <td style="text-align: center;">
-                        <button class="delete-btn" onclick="confirmDeleteAdmin('${a.uid}', '${a.name || a.username}')">
-                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            Delete Account
-                        </button>
-                    </td>
-                </tr>`).join('');
+                tbody.innerHTML = list.map((a, i) => {
+                    const isMainAdmin = a.role === 'main_admin';
+                    const isSelf = a.uid === currentActiveUid;
+                    const canDelete = !(isMainAdmin && isSelf);
+
+                    const roleBadge = isMainAdmin
+                        ? '<span class="role-badge main-admin">Main Admin</span>'
+                        : '<span class="role-badge admin">Admin</span>';
+
+                    return `<tr>
+                        <td>${i+1}</td>
+                        <td>${a.name || '—'}</td>
+                        <td>@${a.username}</td>
+                        <td>${a.email || '—'}</td>
+                        <td>${roleBadge}</td>
+                        <td style="text-align: center;">
+                            <button class="delete-btn" ${!canDelete ? 'disabled title="Main Admins cannot delete their own account"' : ''} onclick="confirmDeleteAdmin('${a.uid}', '${a.name || a.username}')">
+                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                Delete
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join('');
             });
         }
 
         let deleteAdminUid = null;
         function confirmDeleteAdmin(uid, name) {
+            if (uid === currentActiveUid) {
+                alert("Main Admins cannot delete their own account. Only another Main Admin can delete this account.");
+                return;
+            }
             deleteAdminUid = uid;
             document.getElementById('delete-admin-desc').textContent = `Are you sure you want to delete administrator account "${name}"?\nThey will lose all access immediately and won't be able to log in again.`;
             document.getElementById('modal-delete-admin').classList.add('visible');
@@ -1200,7 +1223,7 @@
         function loadAdminSessions() {
             db.ref('/adminSessions').on('value', snap => {
                 const list = Object.values(snap.val() || {})
-                    .filter(s => s.role !== 'main_admin' && s.username && s.username.trim() !== '' && s.username !== 'N/A')
+                    .filter(s => s.username && s.username.trim() !== '' && s.username !== 'N/A')
                     .sort((a,b) => (b.loginTime || 0) - (a.loginTime || 0));
                 
                 rawSessionsList = list;
@@ -1250,11 +1273,15 @@
                     ? '<span class="audit-badge active"><span class="status-dot"></span>Active</span>'
                     : '<span class="audit-badge signed-out">Signed Out</span>';
 
+                const roleBadge = s.role === 'main_admin' 
+                    ? '<span class="role-badge main-admin" style="font-size:9px; padding:2px 6px;">Main Admin</span>' 
+                    : '<span class="role-badge admin" style="font-size:9px; padding:2px 6px;">Admin</span>';
+
                 return `<tr>
                     <td style="font-family: var(--mono); color: var(--text-secondary); font-size: 12px; font-weight: 600;">${i + 1}</td>
                     <td>
                         <div class="audit-user-cell">
-                            <span class="audit-user-name">${s.name || 'Unknown User'}</span>
+                            <span class="audit-user-name">${s.name || 'Unknown User'} ${roleBadge}</span>
                             <div class="audit-user-meta">
                                 <span>@${s.username || 'n/a'}</span>
                                 <span style="color: var(--text-muted);">|</span>
@@ -1406,7 +1433,7 @@
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
             document.getElementById('print-subtitle').textContent = activeSessionDateKey ? `Filtered by Sign-In Date: ${activeSessionDateKey}` : 'All Admin Audit Records';
             
-            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
+            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
             
             document.getElementById('print-tbody').innerHTML = currentFilteredSessions.map((s, i) => {
                 const loginDt = s.loginTime ? new Date(s.loginTime) : null;
@@ -1417,6 +1444,7 @@
                     <td>${s.name || 'Unknown'}</td>
                     <td>${s.username || 'N/A'}</td>
                     <td>${s.email || '—'}</td>
+                    <td>${s.role === 'main_admin' ? 'Main Admin' : 'Admin'}</td>
                     <td>${loginDt ? loginDt.toLocaleString('en-PH') : '—'}</td>
                     <td>${logoutDt ? logoutDt.toLocaleString('en-PH') : '—'}</td>
                     <td>${s.logoutTime ? 'Signed Out' : 'Active'}</td>
