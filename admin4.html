@@ -86,7 +86,7 @@
         .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
         /* General Icon Utilities */
-        .icon-sm { width: 16px; height: 16px; stroke-width: 2; flex-shrink: 0; }
+        .icon-sm { width: 14px; height: 14px; stroke-width: 2; flex-shrink: 0; }
         .icon-md { width: 18px; height: 18px; stroke-width: 2; flex-shrink: 0; }
         .icon-lg { width: 22px; height: 22px; stroke-width: 2; flex-shrink: 0; }
 
@@ -287,8 +287,8 @@
         .search-input { font-size: 13px; font-family: var(--mono); color: var(--text-primary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 16px 9px 36px; outline: none; width: 220px; transition: all 0.25s; }
         .search-input:focus { border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
         
-        .filter-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-deep); }
-        .filter-btn { font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: transparent; border: none; border-right: 1px solid var(--border); padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
+        .filter-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-deep); }
+        .filter-btn { font-size: 11px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: transparent; border: none; border-right: 1px solid var(--border); padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
         .filter-btn:last-child { border-right: none; }
         .filter-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 
@@ -342,11 +342,11 @@
         .slot-filter-chip.allslots { background: var(--purple-soft); border-color: var(--purple-border); color: var(--purple); }
 
         .date-filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-        .date-search-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 8px 16px; }
-        .date-input { font-size: 13px; font-family: var(--mono); color: var(--text-primary); background: transparent; border: none; outline: none; color-scheme: dark; }
-        .date-clear-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
+        .date-search-wrap { display: flex; align-items: center; gap: 6px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; }
+        .date-input { font-size: 11px; font-family: var(--mono); color: var(--text-primary); background: transparent; border: none; outline: none; color-scheme: dark; }
+        .date-clear-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
         .date-clear-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
-        .active-filter-tag { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--yellow); background: var(--yellow-soft); border: 1px solid var(--yellow-border); border-radius: var(--radius-sm); padding: 5px 12px; }
+        .active-filter-tag { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--yellow); background: var(--yellow-soft); border: 1px solid var(--yellow-border); border-radius: var(--radius-sm); padding: 4px 8px; }
 
         .history-section-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
         .history-summary-chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); }
@@ -389,8 +389,12 @@
         .account-hero-meta-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary); font-family: var(--mono); }
 
         .pending-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
-        .pending-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
-        .pending-badge { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); }
+        .pending-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+        .pending-badge { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); }
+        
+        /* New Container for Top-Stacked Audit Controls */
+        .audit-controls-container { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+        .audit-controls-bottom { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
         
         .pending-table { width: 100%; border-collapse: collapse; }
         .pending-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
@@ -422,7 +426,7 @@
 
         .print-history-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
         .print-history-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
-        .print-session-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
+        .print-session-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: var(--mono); font-weight: 600; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple-border); border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
         .print-session-btn:hover { background: rgba(129, 140, 248, 0.25); transform: translateY(-1px); }
 
         /* Compact Audit Table Styles */
@@ -766,19 +770,27 @@
                                         Admin Sign-In History Audits
                                     </div>
                                 </div>
-                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                                    <div class="date-search-wrap" style="padding: 5px 10px;">
-                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                                        <input type="date" class="date-input" id="session-date-search" style="font-size:12px;" onchange="applySessionDateSearch()">
+                                <!-- RESTRUCTURED: TOP-STACKED BUTTON GROUP WITH DECREASED SIZES -->
+                                <div class="audit-controls-container">
+                                    <div class="filter-group">
+                                        <button class="filter-btn session-role-btn active" data-role="all">All Sessions</button>
+                                        <button class="filter-btn session-role-btn" data-role="admin">Admin</button>
+                                        <button class="filter-btn session-role-btn" data-role="main_admin">Main Admin Only</button>
                                     </div>
-                                    <button class="date-clear-btn" style="font-size:11px; padding: 6px 12px;" onclick="clearSessionDateFilter()">
-                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-                                        Clear Filter
-                                    </button>
-                                    <button class="print-session-btn" style="font-size:11px; padding: 6px 12px;" onclick="printSessions()">
-                                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                        Print Audits
-                                    </button>
+                                    <div class="audit-controls-bottom">
+                                        <div class="date-search-wrap">
+                                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                                            <input type="date" class="date-input" id="session-date-search" onchange="applySessionDateSearch()">
+                                        </div>
+                                        <button class="date-clear-btn" onclick="clearSessionDateFilter()">
+                                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+                                            Clear Filter
+                                        </button>
+                                        <button class="print-session-btn" onclick="printSessions()">
+                                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                            Print Audits
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -842,6 +854,7 @@
         let isAllSlots = true;
         let activeDateKey = null;
         let activeSessionDateKey = null;
+        let activeSessionRoleFilter = 'all';
         let liveTimerInterval = null;
         let currentHistoryData = [];
         let rawSessionsList = [];
@@ -1136,9 +1149,17 @@
             const q = this.value.toLowerCase();
             document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = r.dataset.slot.toLowerCase().includes(q) ? '' : 'none');
         });
-        document.querySelectorAll('.filter-btn').forEach(b => b.addEventListener('click', function() {
-            document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active')); this.classList.add('active');
+        document.querySelectorAll('.filter-btn:not(.session-role-btn)').forEach(b => b.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn:not(.session-role-btn)').forEach(x=>x.classList.remove('active')); this.classList.add('active');
             const f = this.dataset.filter; document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = (f==='all' || r.dataset.status===f)?'':'none');
+        }));
+
+        document.querySelectorAll('.session-role-btn').forEach(b => b.addEventListener('click', function() {
+            document.querySelectorAll('.session-role-btn').forEach(x => x.classList.remove('active'));
+            this.classList.add('active');
+            activeSessionRoleFilter = this.dataset.role;
+            sessionsPageSize = 5;
+            renderAdminSessionsTable();
         }));
 
         /* ── Active Admin Accounts Management ── */
@@ -1233,8 +1254,15 @@
 
         function renderAdminSessionsTable() {
             let filtered = rawSessionsList;
+
+            if (activeSessionRoleFilter === 'admin') {
+                filtered = filtered.filter(s => s.role === 'admin' || !s.role);
+            } else if (activeSessionRoleFilter === 'main_admin') {
+                filtered = filtered.filter(s => s.role === 'main_admin');
+            }
+
             if (activeSessionDateKey) {
-                filtered = rawSessionsList.filter(s => s.loginTime && dateKey(new Date(s.loginTime)) === activeSessionDateKey);
+                filtered = filtered.filter(s => s.loginTime && dateKey(new Date(s.loginTime)) === activeSessionDateKey);
             }
             currentFilteredSessions = filtered;
 
@@ -1429,9 +1457,13 @@
         function printSessions() {
             if (!currentFilteredSessions.length) return alert('No session logs to print.');
             
+            const roleLabels = { all: 'All Sessions', admin: 'Admin Only', main_admin: 'Main Admin Only' };
+            const roleStr = roleLabels[activeSessionRoleFilter] || 'All Sessions';
+            const dateStr = activeSessionDateKey ? ` | Date: ${activeSessionDateKey}` : '';
+
             document.getElementById('print-title').textContent = 'iPark Admin Audit Report';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
-            document.getElementById('print-subtitle').textContent = activeSessionDateKey ? `Filtered by Sign-In Date: ${activeSessionDateKey}` : 'All Admin Audit Records';
+            document.getElementById('print-subtitle').textContent = `Filtered by Role: ${roleStr}${dateStr}`;
             
             document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
             
