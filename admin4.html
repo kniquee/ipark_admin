@@ -945,11 +945,47 @@
         });
 
         /* ── Real-Time Listeners ── */
-        db.ref('/parkingSlots').on('value', snap => {
-            globalSlotsState = snap.val() || {};
-            renderDashboardUI();
-            processCombinedHistory();
+        /* ── Real-Time Listeners ── */
+db.ref('/parkingSlots').on('value', snap => {
+    const newSlotsState = snap.val() || {};
+    
+    // Only process state transitions if we already have a previous state loaded
+    if (Object.keys(globalSlotsState).length > 0) {
+        ALL_SLOTS.forEach(slotId => {
+            const oldData = globalSlotsState[slotId];
+            const newData = newSlotsState[slotId];
+
+            const wasOccupied = oldData && (oldData.occupied === true || oldData.status === 'occupied');
+            const isNowAvailable = newData && (newData.occupied === false || newData.status === 'available');
+
+            // When a slot transitions from occupied to available
+            if (wasOccupied && isNowAvailable && oldData.timeIn) {
+                const timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
+                
+                const newRecord = {
+                    timeIn: oldData.timeIn,
+                    timeOut: timeOutVal
+                };
+
+                // 1. Save permanently to Firebase /history
+                const newRef = db.ref(`/history/${slotId}`).push(newRecord);
+
+                // 2. Instantly update local history object so UI reflects it immediately
+                if (!globalHistoryState) globalHistoryState = {};
+                if (!globalHistoryState[slotId]) globalHistoryState[slotId] = {};
+                globalHistoryState[slotId][newRef.key] = newRecord;
+            }
         });
+    }
+
+    // Update global slots state
+    globalSlotsState = newSlotsState;
+
+    // Trigger full real-time re-renders instantly
+    renderDashboardUI();
+    processCombinedHistory();
+    if (typeof renderTodayStats === 'function') renderTodayStats();
+});
 
         db.ref('/history').on('value', snap => {
             globalHistoryState = snap.val() || {};
