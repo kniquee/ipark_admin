@@ -93,20 +93,33 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: 20px;
-            padding: 10px 36px 40px; /* Reduced top padding from 40px to 30px */
+            padding: 10px 36px 40px;
             box-shadow: 0 32px 64px rgba(0, 0, 0, 0.56), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.08);
             display: none;
             opacity: 0;
-            transform: translateY(20px) scale(0.98);
-            transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), 
-                        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(20px) scale(0.96);
+            transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), 
+                        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform, opacity;
+            position: relative;
+            /* Prevent layout shift during transition */
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
         }
 
         .auth-card.visible {
             display: block;
             opacity: 1;
             transform: translateY(0) scale(1);
+        }
+
+        /* Exit animation - sliding out */
+        .auth-card.exit {
+            opacity: 0;
+            transform: translateY(-30px) scale(0.96);
+            transition: opacity 0.4s cubic-bezier(0.55, 0, 1, 0.45), 
+                        transform 0.4s cubic-bezier(0.55, 0, 1, 0.45);
         }
 
         .brand-header {
@@ -116,10 +129,10 @@
 
         /* Centered Logo Image Styling */
         .brand-logo-img {
-            max-height: 100px; /* Adjust size as needed */
+            max-height: 100px;
             width: auto;
             display: block;
-            margin: 0 auto -10px auto; /* Centers image and gives tight bottom margin */
+            margin: 0 auto -10px auto;
             filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(1455%) hue-rotate(167deg) brightness(101%) contrast(96%);
         }
 
@@ -520,8 +533,69 @@
             }
         }
 
-        /* ── View Switcher Logic ── */
+        /* ── View Switcher Logic with Smoother Transitions ── */
+        let isTransitioning = false;
+
         function showView(viewId) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+
+            const currentVisible = document.querySelector('.auth-card.visible');
+            const target = document.getElementById(viewId);
+
+            if (!target) {
+                isTransitioning = false;
+                return;
+            }
+
+            // If already on the target view, do nothing
+            if (currentVisible && currentVisible.id === viewId) {
+                isTransitioning = false;
+                return;
+            }
+
+            // Hide current card with exit animation
+            if (currentVisible) {
+                currentVisible.classList.add('exit');
+                
+                // Wait for exit animation to complete before showing new card
+                setTimeout(() => {
+                    currentVisible.classList.remove('visible');
+                    currentVisible.classList.remove('exit');
+                    currentVisible.style.display = 'none';
+                    
+                    // Now show the target card
+                    showTargetCard(target);
+                }, 400);
+            } else {
+                // No current visible card, show directly
+                showTargetCard(target);
+            }
+
+            // Clear any status messages
+            document.querySelectorAll('.status-message').forEach(m => { 
+                m.classList.remove('visible'); 
+                const txt = m.querySelector('.status-text');
+                if (txt) txt.textContent = '';
+            });
+            document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
+        }
+
+        function showTargetCard(target) {
+            // Prepare target card
+            target.style.display = 'block';
+            // Force a reflow to ensure the transition works
+            void target.offsetWidth;
+            target.classList.add('visible');
+            
+            // Reset transition state after animation completes
+            setTimeout(() => {
+                isTransitioning = false;
+            }, 500);
+        }
+
+        /* ── Legacy showView for backward compatibility ── */
+        function showViewLegacy(viewId) {
             document.querySelectorAll('.auth-card').forEach(card => {
                 card.classList.remove('visible');
                 setTimeout(() => { if(!card.classList.contains('visible')) card.style.display = 'none'; }, 300);
@@ -537,6 +611,9 @@
             });
             document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
         }
+
+        // Use the new smooth transition
+        const showViewRef = showView;
 
         function friendlyError(code) {
             switch(code) {
