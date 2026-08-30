@@ -340,6 +340,7 @@
         .slot-filter-chip:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
         .slot-filter-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: 0 4px 12px var(--accent-soft); }
         .slot-filter-chip.allslots { background: var(--purple-soft); border-color: var(--purple-border); color: var(--purple); }
+        .slot-filter-chip.allslots:not(.active) { background: var(--bg-card); border-color: var(--border); color: var(--text-secondary); }
 
         .date-filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
         .date-search-wrap { display: flex; align-items: center; gap: 6px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 8px; }
@@ -1241,22 +1242,22 @@
         }
 
         /* ── Slot Chip Filters ── */
-        const cc = document.getElementById('slot-chips');
+    const cc = document.getElementById('slot-chips');
         cc.innerHTML = '';
-        const ac = document.createElement('button'); 
+    const ac = document.createElement('button'); 
         ac.className = 'slot-filter-chip allslots active'; 
         ac.textContent = 'All Slots';
         ac.onclick = () => { 
             document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
-            ac.classList.add('active'); 
+        ac.classList.add('active'); 
             currentSlot = null; isAllSlots = true; 
             document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} All Slots`;
             processCombinedHistory(); 
-        };
+            };
         cc.appendChild(ac);
 
-        ALL_SLOTS.forEach(s => {
-            const c = document.createElement('button'); 
+    ALL_SLOTS.forEach(s => {
+        const c = document.createElement('button'); 
             c.className = 'slot-filter-chip'; 
             c.textContent = s;
             c.onclick = () => { 
@@ -1266,8 +1267,8 @@
                 document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} Slot ${s}`;
                 processCombinedHistory(); 
             };
-            cc.appendChild(c);
-        });
+        cc.appendChild(c);
+    });
 
         function applyDateSearch() { activeDateKey = document.getElementById('date-search').value || null; processCombinedHistory(); }
         function clearDateFilter() { activeDateKey = null; document.getElementById('date-search').value = ''; processCombinedHistory(); }
