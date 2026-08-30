@@ -425,6 +425,12 @@
         .delete-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
         .delete-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
+        /* ✅ NEW: Unlock button styling */
+        .unlock-btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .unlock-btn:hover { background: rgba(251, 191, 36, 0.25); transform: translateY(-1px); }
+        .unlock-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
         .print-history-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--green); background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 9px 16px; cursor: pointer; transition: all 0.2s; }
         .print-history-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
         .print-session-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: var(--mono); font-weight: 600; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple-border); border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
@@ -609,6 +615,8 @@
     <div class="modal-overlay" id="modal-approve"><div class="modal"><div class="modal-title">Approve Account</div><div class="modal-desc" id="approve-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="approve-cancel">Cancel</button><button class="modal-confirm-green" id="approve-confirm">Approve</button></div></div></div>
     <div class="modal-overlay" id="modal-reject"><div class="modal"><div class="modal-title">Reject Account</div><div class="modal-desc" id="reject-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="reject-cancel">Cancel</button><button class="modal-confirm-red" id="reject-confirm">Reject</button></div></div></div>
     <div class="modal-overlay" id="modal-delete-admin"><div class="modal"><div class="modal-title">Delete Admin Account</div><div class="modal-desc" id="delete-admin-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="delete-admin-cancel">Cancel</button><button class="modal-confirm-red" id="delete-admin-confirm">Delete</button></div></div></div>
+    <!-- ✅ NEW: Modal for Unlock confirmation -->
+    <div class="modal-overlay" id="modal-unlock"><div class="modal"><div class="modal-title">Unlock Account</div><div class="modal-desc" id="unlock-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="unlock-cancel">Cancel</button><button class="modal-confirm-green" id="unlock-confirm">Unlock</button></div></div></div>
 
     <div class="layout">
         <!-- SIDEBAR -->
@@ -1110,69 +1118,68 @@
         });
 
         /* ── Render Dashboard UI ── */
-        /* ── Render Dashboard UI ── */
-// ✅ FIXED: Occupied slots sorted by most recent first, available slots keep original order
-// ✅ FIXED: When slot becomes available, it moves back to its original position
-function renderDashboardUI() {
-    let av = 0, oc = 0;
-    const tbody = document.getElementById('slot-tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    
-    // Define the original order of slots
-    const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
-    
-    // First, update all rows with current data and collect occupied rows with their timeIn
-    const occupiedRows = [];
-    const availableRows = [];
-    
-    rows.forEach(row => {
-        const id = row.dataset.slot; 
-        const sData = globalSlotsState[id] || {}; 
-        const occupied = sData.occupied === true || sData.status === 'occupied';
-        const timeIn = sData.timeIn || 0;
+        // ✅ FIXED: Occupied slots sorted by most recent first, available slots keep original order
+        // ✅ FIXED: When slot becomes available, it moves back to its original position
+        function renderDashboardUI() {
+            let av = 0, oc = 0;
+            const tbody = document.getElementById('slot-tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Define the original order of slots
+            const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
+            
+            // First, update all rows with current data and collect occupied rows with their timeIn
+            const occupiedRows = [];
+            const availableRows = [];
+            
+            rows.forEach(row => {
+                const id = row.dataset.slot; 
+                const sData = globalSlotsState[id] || {}; 
+                const occupied = sData.occupied === true || sData.status === 'occupied';
+                const timeIn = sData.timeIn || 0;
 
-        row.dataset.status = occupied ? 'occupied' : 'available';
-        row.querySelector('.col-status').innerHTML = occupied ? 
-            '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
-            '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
-        row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
+                row.dataset.status = occupied ? 'occupied' : 'available';
+                row.querySelector('.col-status').innerHTML = occupied ? 
+                    '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
+                    '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
+                row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
 
-        if(occupied) {
-            oc++;
-            // Store the row with its timeIn for sorting
-            occupiedRows.push({ row, timeIn });
-        } else {
-            av++;
-            availableRows.push(row);
+                if(occupied) {
+                    oc++;
+                    // Store the row with its timeIn for sorting
+                    occupiedRows.push({ row, timeIn });
+                } else {
+                    av++;
+                    availableRows.push(row);
+                }
+            });
+            
+            // Sort occupied rows by timeIn (most recent first / descending)
+            occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
+            
+            // Get the sorted occupied row elements
+            const sortedOccupiedRows = occupiedRows.map(item => item.row);
+            
+            // Sort available rows by their original order
+            availableRows.sort((a, b) => {
+                const aIndex = originalOrder.indexOf(a.dataset.slot);
+                const bIndex = originalOrder.indexOf(b.dataset.slot);
+                return aIndex - bIndex;
+            });
+            
+            // Combine: occupied rows (newest first) followed by available rows (original order)
+            const sortedRows = [...sortedOccupiedRows, ...availableRows];
+            
+            // Re-append sorted rows
+            sortedRows.forEach(row => tbody.appendChild(row));
+
+            document.getElementById('stat-available').textContent = av; 
+            document.getElementById('stat-occupied').textContent = oc;
+            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
+            document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
+            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
+            document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
         }
-    });
-    
-    // Sort occupied rows by timeIn (most recent first / descending)
-    occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
-    
-    // Get the sorted occupied row elements
-    const sortedOccupiedRows = occupiedRows.map(item => item.row);
-    
-    // Sort available rows by their original order
-    availableRows.sort((a, b) => {
-        const aIndex = originalOrder.indexOf(a.dataset.slot);
-        const bIndex = originalOrder.indexOf(b.dataset.slot);
-        return aIndex - bIndex;
-    });
-    
-    // Combine: occupied rows (newest first) followed by available rows (original order)
-    const sortedRows = [...sortedOccupiedRows, ...availableRows];
-    
-    // Re-append sorted rows
-    sortedRows.forEach(row => tbody.appendChild(row));
-
-    document.getElementById('stat-available').textContent = av; 
-    document.getElementById('stat-occupied').textContent = oc;
-    document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
-    document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
-    document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
-    document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
-}
 
         function renderTodayStats() {
             let count = 0; 
@@ -1282,22 +1289,22 @@ function renderDashboardUI() {
         }
 
         /* ── Slot Chip Filters ── */
-    const cc = document.getElementById('slot-chips');
+        const cc = document.getElementById('slot-chips');
         cc.innerHTML = '';
-    const ac = document.createElement('button'); 
+        const ac = document.createElement('button'); 
         ac.className = 'slot-filter-chip allslots active'; 
         ac.textContent = 'All Slots';
         ac.onclick = () => { 
             document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
-        ac.classList.add('active'); 
+            ac.classList.add('active'); 
             currentSlot = null; isAllSlots = true; 
             document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} All Slots`;
             processCombinedHistory(); 
-            };
+        };
         cc.appendChild(ac);
 
-    ALL_SLOTS.forEach(s => {
-        const c = document.createElement('button'); 
+        ALL_SLOTS.forEach(s => {
+            const c = document.createElement('button'); 
             c.className = 'slot-filter-chip'; 
             c.textContent = s;
             c.onclick = () => { 
@@ -1307,8 +1314,8 @@ function renderDashboardUI() {
                 document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} Slot ${s}`;
                 processCombinedHistory(); 
             };
-        cc.appendChild(c);
-    });
+            cc.appendChild(c);
+        });
 
         function applyDateSearch() { activeDateKey = document.getElementById('date-search').value || null; processCombinedHistory(); }
         function clearDateFilter() { activeDateKey = null; document.getElementById('date-search').value = ''; processCombinedHistory(); }
@@ -1347,6 +1354,48 @@ function renderDashboardUI() {
         }));
 
         /* ── Active Admin Accounts Management ── */
+        // ✅ NEW: Function to unlock a user
+        function unlockUser(username, name) {
+            document.getElementById('unlock-desc').textContent = `Are you sure you want to unlock "${name}" (${username})?\nThey will be able to log in again.`;
+            document.getElementById('modal-unlock').classList.add('visible');
+            
+            // Store the username for the confirm action
+            document.getElementById('unlock-confirm').dataset.username = username;
+        }
+
+        // ✅ NEW: Confirm unlock
+        document.getElementById('unlock-confirm').addEventListener('click', function() {
+            const username = this.dataset.username;
+            if (!username) return;
+            
+            // Remove from lockouts
+            db.ref('userLockouts').orderByChild('username').equalTo(username).once('value')
+                .then(snap => {
+                    if (snap.exists()) {
+                        const key = Object.keys(snap.val())[0];
+                        db.ref('userLockouts/' + key).remove();
+                    }
+                });
+            
+            // Remove from failed attempts
+            db.ref('failedLoginAttempts').orderByChild('username').equalTo(username).once('value')
+                .then(snap => {
+                    if (snap.exists()) {
+                        const key = Object.keys(snap.val())[0];
+                        db.ref('failedLoginAttempts/' + key).remove();
+                    }
+                })
+                .then(() => {
+                    document.getElementById('modal-unlock').classList.remove('visible');
+                    // Refresh the admin list to update button states
+                    loadActiveAdmins();
+                });
+        });
+
+        document.getElementById('unlock-cancel').addEventListener('click', function() {
+            document.getElementById('modal-unlock').classList.remove('visible');
+        });
+
         function loadActiveAdmins() {
             db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val() || {})
@@ -1361,6 +1410,7 @@ function renderDashboardUI() {
                     return;
                 }
 
+                // Check lockout status for each user
                 tbody.innerHTML = list.map((a, i) => {
                     const isMainAdmin = a.role === 'main_admin';
                     const isSelf = a.uid === currentActiveUid;
@@ -1370,6 +1420,24 @@ function renderDashboardUI() {
                         ? '<span class="role-badge main-admin">Main Admin</span>'
                         : '<span class="role-badge admin">Admin</span>';
 
+                    // Check if user is locked out
+                    let isLocked = false;
+                    db.ref('userLockouts').orderByChild('username').equalTo(a.username).once('value')
+                        .then(snap => {
+                            if (snap.exists()) {
+                                isLocked = true;
+                            }
+                        });
+
+                    // Build the actions HTML with unlock button if locked
+                    let actionsHtml = '';
+                    if (isLocked) {
+                        actionsHtml = `<button class="unlock-btn" onclick="unlockUser('${a.username}', '${a.name || a.username}')">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+                            Unlock
+                        </button>`;
+                    }
+
                     return `<tr>
                         <td>${i+1}</td>
                         <td>${a.name || '—'}</td>
@@ -1377,6 +1445,7 @@ function renderDashboardUI() {
                         <td>${a.email || '—'}</td>
                         <td>${roleBadge}</td>
                         <td style="text-align: center;">
+                            ${actionsHtml}
                             <button class="delete-btn" ${!canDelete ? 'disabled title="Main Admins cannot delete their own account"' : ''} onclick="confirmDeleteAdmin('${a.uid}', '${a.name || a.username}')">
                                 <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                                 Delete
@@ -1384,6 +1453,32 @@ function renderDashboardUI() {
                         </td>
                     </tr>`;
                 }).join('');
+
+                // Re-check lockout status and update buttons
+                list.forEach((a, i) => {
+                    db.ref('userLockouts').orderByChild('username').equalTo(a.username).once('value')
+                        .then(snap => {
+                            if (snap.exists()) {
+                                const row = tbody.querySelectorAll('tr')[i];
+                                if (row) {
+                                    const actionsCell = row.querySelector('td:last-child');
+                                    if (!actionsCell.querySelector('.unlock-btn')) {
+                                        const unlockBtn = document.createElement('button');
+                                        unlockBtn.className = 'unlock-btn';
+                                        unlockBtn.innerHTML = `<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Unlock`;
+                                        unlockBtn.onclick = function() { unlockUser(a.username, a.name || a.username); };
+                                        // Insert before the delete button
+                                        const deleteBtn = actionsCell.querySelector('.delete-btn');
+                                        if (deleteBtn) {
+                                            actionsCell.insertBefore(unlockBtn, deleteBtn);
+                                        } else {
+                                            actionsCell.appendChild(unlockBtn);
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                });
             });
         }
 
