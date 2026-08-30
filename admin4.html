@@ -881,12 +881,20 @@
             const t = parseTimestamp(ts);
             return t ? `<span class="time-val">${new Date(t).toLocaleTimeString('en-PH')}</span>` : '<span class="time-val empty">—</span>'; 
         }
+        
+        // ✅ FIXED: durStr function handles invalid timeOut values
         function durStr(tIn, tOut) { 
             const start = parseTimestamp(tIn);
             if(!start) return '—'; 
             const end = parseTimestamp(tOut) || Date.now();
-            const s = Math.floor((end - start)/1000); 
-            if (s < 0) return '0s';
+            // If timeOut is less than timeIn, use current time (or return 0s if that's also invalid)
+            let s = Math.floor((end - start)/1000);
+            if (s < 0) {
+                // If timeOut is in the past, use current time
+                const now = Date.now();
+                s = Math.floor((now - start)/1000);
+                if (s < 0) return '0s'; // Fallback safety
+            }
             const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; 
             return h>0?`${h}h ${m}m ${sec}s` : m>0?`${m}m ${sec}s` : `${sec}s`; 
         }
@@ -945,47 +953,58 @@
         });
 
         /* ── Real-Time Listeners ── */
-        /* ── Real-Time Listeners ── */
-db.ref('/parkingSlots').on('value', snap => {
-    const newSlotsState = snap.val() || {};
-    
-    // Only process state transitions if we already have a previous state loaded
-    if (Object.keys(globalSlotsState).length > 0) {
-        ALL_SLOTS.forEach(slotId => {
-            const oldData = globalSlotsState[slotId];
-            const newData = newSlotsState[slotId];
+        // ✅ FIXED: Ensures timeOut is always greater than timeIn
+        db.ref('/parkingSlots').on('value', snap => {
+            const newSlotsState = snap.val() || {};
+            
+            // Only process state transitions if we already have a previous state loaded
+            if (Object.keys(globalSlotsState).length > 0) {
+                ALL_SLOTS.forEach(slotId => {
+                    const oldData = globalSlotsState[slotId];
+                    const newData = newSlotsState[slotId];
 
-            const wasOccupied = oldData && (oldData.occupied === true || oldData.status === 'occupied');
-            const isNowAvailable = newData && (newData.occupied === false || newData.status === 'available');
+                    const wasOccupied = oldData && (oldData.occupied === true || oldData.status === 'occupied');
+                    const isNowAvailable = newData && (newData.occupied === false || newData.status === 'available');
 
-            // When a slot transitions from occupied to available
-            if (wasOccupied && isNowAvailable && oldData.timeIn) {
-                const timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
-                
-                const newRecord = {
-                    timeIn: oldData.timeIn,
-                    timeOut: timeOutVal
-                };
+                    // When a slot transitions from occupied to available
+                    if (wasOccupied && isNowAvailable && oldData.timeIn) {
+                        let timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
+                        
+                        // ✅ FIX: Ensure timeOut is ALWAYS greater than timeIn
+                        if (timeOutVal <= oldData.timeIn) {
+                            timeOutVal = Date.now();
+                            console.log(`⚠️ Fixed invalid logout time for slot ${slotId}: timeOut was ${new Date(timeOutVal).toLocaleTimeString()}, using current time instead`);
+                        }
+                        
+                        // Log warning if duration is suspiciously short (less than 1 second)
+                        if ((timeOutVal - oldData.timeIn) < 1000) {
+                            console.warn(`⚠️ Very short duration for slot ${slotId}: ${(timeOutVal - oldData.timeIn)/1000} seconds`);
+                        }
+                        
+                        const newRecord = {
+                            timeIn: oldData.timeIn,
+                            timeOut: timeOutVal
+                        };
 
-                // 1. Save permanently to Firebase /history
-                const newRef = db.ref(`/history/${slotId}`).push(newRecord);
+                        // 1. Save permanently to Firebase /history
+                        const newRef = db.ref(`/history/${slotId}`).push(newRecord);
 
-                // 2. Instantly update local history object so UI reflects it immediately
-                if (!globalHistoryState) globalHistoryState = {};
-                if (!globalHistoryState[slotId]) globalHistoryState[slotId] = {};
-                globalHistoryState[slotId][newRef.key] = newRecord;
+                        // 2. Instantly update local history object so UI reflects it immediately
+                        if (!globalHistoryState) globalHistoryState = {};
+                        if (!globalHistoryState[slotId]) globalHistoryState[slotId] = {};
+                        globalHistoryState[slotId][newRef.key] = newRecord;
+                    }
+                });
             }
+
+            // Update global slots state
+            globalSlotsState = newSlotsState;
+
+            // Trigger full real-time re-renders instantly
+            renderDashboardUI();
+            processCombinedHistory();
+            if (typeof renderTodayStats === 'function') renderTodayStats();
         });
-    }
-
-    // Update global slots state
-    globalSlotsState = newSlotsState;
-
-    // Trigger full real-time re-renders instantly
-    renderDashboardUI();
-    processCombinedHistory();
-    if (typeof renderTodayStats === 'function') renderTodayStats();
-});
 
         db.ref('/history').on('value', snap => {
             globalHistoryState = snap.val() || {};
@@ -1337,7 +1356,6 @@ db.ref('/parkingSlots').on('value', snap => {
                     ? '<span class="audit-badge active"><span class="status-dot"></span>Active</span>'
                     : '<span class="audit-badge signed-out">Signed Out</span>';
 
-                /* Only render the badge if All Sessions filter is active */
                 let roleBadge = '';
                 if (activeSessionRoleFilter === 'all') {
                     roleBadge = s.role === 'main_admin' 
