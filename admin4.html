@@ -464,54 +464,142 @@
         /* ============================================
            PRINT PREVIEW STYLES
            ============================================ */
-        @media print {
-            html, body {
-                background: white !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                height: auto !important;
-                min-height: 100% !important;
-            }
-            body * { visibility: hidden !important; }
-            #print-area, #print-area * { visibility: visible !important; }
-            #print-area {
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                padding: 40px !important;
-                background: white !important;
-                display: block !important;
-                z-index: 9999 !important;
-                color: #000 !important;
-                margin: 0 !important;
-                box-sizing: border-box !important;
-                font-family: 'JetBrains Mono', monospace !important;
-            }
-            .print-header {
-                text-align: center !important;
-                margin-bottom: 24px !important;
-                padding-bottom: 15px !important;
-                border-bottom: 2px solid #333 !important;
-            }
-            .print-header h1 { font-size: 24px !important; font-weight: 800 !important; color: #000 !important; margin-bottom: 4px !important; }
-            .print-header p { font-size: 12px !important; color: #444 !important; font-family: 'JetBrains Mono', monospace !important; margin: 2px 0 !important; }
-            #print-table { width: 100% !important; border-collapse: collapse !important; font-size: 11px !important; font-family: 'JetBrains Mono', monospace !important; }
-            #print-table th { background: #f0f0f0 !important; font-weight: bold !important; padding: 10px 12px !important; border: 1px solid #000 !important; text-align: left !important; font-size: 10px !important; text-transform: uppercase !important; letter-spacing: 1px !important; }
-            #print-table td { padding: 8px 12px !important; border: 1px solid #ccc !important; color: #000 !important; text-align: left !important; font-size: 11px !important; }
-            #print-table tbody tr:nth-child(even) { background: #f9f9f9 !important; }
-            @page { margin: 15mm 12mm !important; size: A4 portrait !important; }
-        }
+        /* ============================================
+   PRINT PREVIEW STYLES - FIXED: NO EXTRA BLANK PAGES
+   ============================================ */
+@media print {
+    /* Reset everything for clean print */
+    html, body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        width: 100% !important;
+        min-height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* Hide everything except the print area */
+    body * { 
+        visibility: hidden !important; 
+        display: none !important;
+    }
+    
+    /* Show only the print area and its children */
+    #print-area, 
+    #print-area * { 
+        visibility: visible !important; 
+        display: revert !important;
+    }
+    
+    #print-area {
+        position: relative !important;
+        left: auto !important;
+        top: 0 !important;
+        width: 100% !important;
+        padding: 20px 25px !important;
+        background: white !important;
+        display: block !important;
+        color: #000 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        float: none !important;
+        clear: both !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    .print-header {
+        text-align: center !important;
+        margin-bottom: 10px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 2px solid #333 !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .print-header h1 { 
+        font-size: 20px !important; 
+        font-weight: 800 !important; 
+        color: #000 !important; 
+        margin-bottom: 2px !important; 
+        padding: 0 !important;
+    }
+    
+    .print-header p { 
+        font-size: 10px !important; 
+        color: #444 !important; 
+        font-family: 'JetBrains Mono', monospace !important; 
+        margin: 1px 0 !important; 
+        padding: 0 !important;
+    }
+    
+    #print-table { 
+        width: 100% !important; 
+        border-collapse: collapse !important; 
+        font-size: 10px !important; 
+        font-family: 'JetBrains Mono', monospace !important;
+        page-break-inside: avoid !important;
+        table-layout: auto !important;
+        margin-top: 0 !important;
+    }
+    
+    #print-table th { 
+        background: #f0f0f0 !important; 
+        font-weight: bold !important; 
+        padding: 6px 8px !important; 
+        border: 1px solid #000 !important; 
+        text-align: left !important; 
+        font-size: 9px !important; 
+        text-transform: uppercase !important; 
+        letter-spacing: 0.5px !important; 
+    }
+    
+    #print-table td { 
+        padding: 5px 8px !important; 
+        border: 1px solid #ccc !important; 
+        color: #000 !important; 
+        text-align: left !important; 
+        font-size: 9px !important; 
+    }
+    
+    #print-table tbody tr { 
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    #print-table tbody tr:nth-child(even) { 
+        background: #f9f9f9 !important; 
+    }
+    
+    /* Let user choose paper size - no forced size */
+    @page { 
+        margin: 8mm 8mm !important;
+        size: auto !important;
+    }
+    
+    .print-footer {
+        display: none !important;
+    }
+}
 
-        #print-area { display: none; }
-        #print-area.visible-on-screen { display: block !important; background: white !important; color: #000 !important; padding: 30px !important; font-family: 'JetBrains Mono', monospace !important; max-width: 100% !important; }
-        #print-area.visible-on-screen .print-header { text-align: center !important; margin-bottom: 20px !important; padding-bottom: 12px !important; border-bottom: 2px solid #333 !important; }
-        #print-area.visible-on-screen .print-header h1 { font-size: 22px !important; color: #000 !important; }
-        #print-area.visible-on-screen .print-header p { color: #444 !important; }
-        #print-area.visible-on-screen #print-table { width: 100% !important; border-collapse: collapse !important; font-size: 12px !important; }
-        #print-area.visible-on-screen #print-table th { background: #f0f0f0 !important; font-weight: bold !important; padding: 8px 10px !important; border: 1px solid #000 !important; text-align: left !important; }
-        #print-area.visible-on-screen #print-table td { padding: 6px 10px !important; border: 1px solid #ccc !important; color: #000 !important; text-align: left !important; }
-        #print-area.visible-on-screen #print-table tbody tr:nth-child(even) { background: #f9f9f9 !important; }
+#print-area { display: none; }
+#print-area.visible-on-screen { 
+    display: block !important; 
+    background: white !important; 
+    color: #000 !important; 
+    padding: 15px 20px !important; 
+    font-family: 'JetBrains Mono', monospace !important; 
+    max-width: 100% !important; 
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    height: auto !important;
+}
     </style>
 </head>
 <body>
