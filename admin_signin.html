@@ -30,6 +30,8 @@
             --error-bg: rgba(248, 113, 113, 0.1);
             --success-color: #34d399;
             --success-bg: rgba(52, 211, 153, 0.1);
+            --warning-color: #fbbf24;
+            --warning-bg: rgba(251, 191, 36, 0.1);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -103,7 +105,6 @@
                         transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
             will-change: transform, opacity;
             position: relative;
-            /* Prevent layout shift during transition */
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
         }
@@ -340,6 +341,12 @@
             color: var(--success-color);
         }
 
+        .status-message.warning {
+            background: var(--warning-bg);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: var(--warning-color);
+        }
+
         .status-message.visible {
             display: flex;
         }
@@ -370,6 +377,10 @@
             </div>
             <div class="status-message success" id="signin-success-msg">
                 <i class="fa-solid fa-circle-check status-icon"></i>
+                <span class="status-text"></span>
+            </div>
+            <div class="status-message warning" id="signin-warning-msg">
+                <i class="fa-solid fa-triangle-exclamation status-icon"></i>
                 <span class="status-text"></span>
             </div>
 
@@ -510,7 +521,7 @@
         const db   = firebase.database();
 
         /* ── Helper for Status Messages ── */
-        function setStatus(elementId, text) {
+        function setStatus(elementId, text, type) {
             const el = document.getElementById(elementId);
             if (!el) return;
 
@@ -548,31 +559,25 @@
                 return;
             }
 
-            // If already on the target view, do nothing
             if (currentVisible && currentVisible.id === viewId) {
                 isTransitioning = false;
                 return;
             }
 
-            // Hide current card with exit animation
             if (currentVisible) {
                 currentVisible.classList.add('exit');
                 
-                // Wait for exit animation to complete before showing new card
                 setTimeout(() => {
                     currentVisible.classList.remove('visible');
                     currentVisible.classList.remove('exit');
                     currentVisible.style.display = 'none';
                     
-                    // Now show the target card
                     showTargetCard(target);
                 }, 400);
             } else {
-                // No current visible card, show directly
                 showTargetCard(target);
             }
 
-            // Clear any status messages
             document.querySelectorAll('.status-message').forEach(m => { 
                 m.classList.remove('visible'); 
                 const txt = m.querySelector('.status-text');
@@ -582,47 +587,24 @@
         }
 
         function showTargetCard(target) {
-            // Prepare target card
             target.style.display = 'block';
-            // Force a reflow to ensure the transition works
             void target.offsetWidth;
             target.classList.add('visible');
             
-            // Reset transition state after animation completes
             setTimeout(() => {
                 isTransitioning = false;
             }, 500);
         }
 
-        /* ── Legacy showView for backward compatibility ── */
-        function showViewLegacy(viewId) {
-            document.querySelectorAll('.auth-card').forEach(card => {
-                card.classList.remove('visible');
-                setTimeout(() => { if(!card.classList.contains('visible')) card.style.display = 'none'; }, 300);
-            });
-            const target = document.getElementById(viewId);
-            target.style.display = 'block';
-            setTimeout(() => target.classList.add('visible'), 50);
-
-            document.querySelectorAll('.status-message').forEach(m => { 
-                m.classList.remove('visible'); 
-                const txt = m.querySelector('.status-text');
-                if (txt) txt.textContent = '';
-            });
-            document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
-        }
-
-        // Use the new smooth transition
-        const showViewRef = showView;
-
         function friendlyError(code) {
             switch(code) {
                 case 'auth/invalid-email':       return 'Invalid email address format.';
                 case 'auth/user-disabled':       return 'This administrator account has been disabled.';
-                case 'auth/user-not-found':      return 'Account not found in directory.';
-                case 'auth/wrong-password':      return 'Incorrect password provided.';
+                case 'auth/user-not-found':      return 'Account not found. Please request access.';
+                case 'auth/wrong-password':      return 'Incorrect password. Please try again.';
                 case 'auth/email-already-in-use':return 'Email address is already registered.';
                 case 'auth/weak-password':       return 'Password is too weak. Use at least 6 characters.';
+                case 'auth/too-many-requests':   return 'Too many failed attempts. Please try again later.';
                 default:                         return 'Authentication failed. Please verify credentials.';
             }
         }
@@ -631,6 +613,24 @@
         function findUserByUsername(username) {
             return new Promise((resolve, reject) => {
                 db.ref('adminUsers').orderByChild('username').equalTo(username).once('value')
+                    .then(snap => {
+                        if (snap.exists()) {
+                            const users = snap.val();
+                            const uid = Object.keys(users)[0];
+                            const userData = users[uid];
+                            resolve({ uid, ...userData });
+                        } else {
+                            resolve(null);
+                        }
+                    })
+                    .catch(err => reject(err));
+            });
+        }
+
+        /* ── Function to check if user is pending approval ── */
+        function checkPendingApproval(username) {
+            return new Promise((resolve, reject) => {
+                db.ref('pendingAdmins').orderByChild('username').equalTo(username).once('value')
                     .then(snap => {
                         if (snap.exists()) {
                             const users = snap.val();
@@ -679,7 +679,10 @@
             const passEl = document.getElementById('login-password');
             const btn = document.getElementById('signin-btn');
 
+            // Clear all sign-in messages
             setStatus('signin-error-msg', '');
+            setStatus('signin-warning-msg', '');
+            setStatus('signin-success-msg', '');
             usernameEl.classList.remove('field-error');
             passEl.classList.remove('field-error');
 
@@ -693,15 +696,30 @@
             btn.classList.add('loading');
             btn.disabled = true;
 
+            // First check if username exists in adminUsers
             findUserByUsername(username)
                 .then(userData => {
                     if (!userData) {
-                        setStatus('signin-error-msg', 'Username not found. Please verify your credentials.');
-                        usernameEl.classList.add('field-error');
-                        resetSignInBtn();
-                        return;
+                        // Username not in adminUsers, check pendingAdmins
+                        return checkPendingApproval(username)
+                            .then(pendingData => {
+                                if (pendingData) {
+                                    // User is pending approval
+                                    setStatus('signin-warning-msg', 'Your account is pending approval. Please wait for administrator approval.');
+                                    resetSignInBtn();
+                                    usernameEl.classList.add('field-error');
+                                    return;
+                                } else {
+                                    // Username not found anywhere
+                                    setStatus('signin-error-msg', 'Account not found. Please request access.');
+                                    usernameEl.classList.add('field-error');
+                                    resetSignInBtn();
+                                    return;
+                                }
+                            });
                     }
 
+                    // User found in adminUsers, proceed with login
                     const email = userData.email;
                     const name = userData.name || username;
                     const role = userData.role || 'admin';
@@ -726,7 +744,7 @@
                                 setStatus('signin-error-msg', 'Incorrect password. Please try again.');
                                 passEl.classList.add('field-error');
                             } else if (err.code === 'auth/user-not-found') {
-                                setStatus('signin-error-msg', 'Account details not found.');
+                                setStatus('signin-error-msg', 'Account not found. Please request access.');
                                 usernameEl.classList.add('field-error');
                             } else {
                                 setStatus('signin-error-msg', friendlyError(err.code));
@@ -774,6 +792,7 @@
                 return; 
             }
 
+            // Check if username already exists in adminUsers
             findUserByUsername(usernameEl.value.trim())
                 .then(existingUser => {
                     if (existingUser) {
@@ -781,7 +800,16 @@
                         usernameEl.classList.add('field-error');
                         return;
                     }
-                    return proceedWithRegistration();
+                    // Check if username is pending approval
+                    return checkPendingApproval(usernameEl.value.trim())
+                        .then(pendingUser => {
+                            if (pendingUser) {
+                                setStatus('register-error-msg', 'Username already has a pending request. Please wait for approval.');
+                                usernameEl.classList.add('field-error');
+                                return;
+                            }
+                            return proceedWithRegistration();
+                        });
                 })
                 .catch(() => {
                     proceedWithRegistration();
