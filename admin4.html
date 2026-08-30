@@ -1110,29 +1110,69 @@
         });
 
         /* ── Render Dashboard UI ── */
-        function renderDashboardUI() {
-            let av = 0, oc = 0;
-            document.querySelectorAll('#slot-tbody tr').forEach(row => {
-                const id = row.dataset.slot; 
-                const sData = globalSlotsState[id] || {}; 
-                const occupied = sData.occupied === true || sData.status === 'occupied';
+        /* ── Render Dashboard UI ── */
+// ✅ FIXED: Occupied slots sorted by most recent first, available slots keep original order
+// ✅ FIXED: When slot becomes available, it moves back to its original position
+function renderDashboardUI() {
+    let av = 0, oc = 0;
+    const tbody = document.getElementById('slot-tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    // Define the original order of slots
+    const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
+    
+    // First, update all rows with current data and collect occupied rows with their timeIn
+    const occupiedRows = [];
+    const availableRows = [];
+    
+    rows.forEach(row => {
+        const id = row.dataset.slot; 
+        const sData = globalSlotsState[id] || {}; 
+        const occupied = sData.occupied === true || sData.status === 'occupied';
+        const timeIn = sData.timeIn || 0;
 
-                row.dataset.status = occupied ? 'occupied' : 'available';
-                row.querySelector('.col-status').innerHTML = occupied ? 
-                    '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
-                    '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
-                row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
+        row.dataset.status = occupied ? 'occupied' : 'available';
+        row.querySelector('.col-status').innerHTML = occupied ? 
+            '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
+            '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
+        row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
 
-                if(occupied) oc++; else av++;
-            });
-
-            document.getElementById('stat-available').textContent = av; 
-            document.getElementById('stat-occupied').textContent = oc;
-            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
-            document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
-            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
-            document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
+        if(occupied) {
+            oc++;
+            // Store the row with its timeIn for sorting
+            occupiedRows.push({ row, timeIn });
+        } else {
+            av++;
+            availableRows.push(row);
         }
+    });
+    
+    // Sort occupied rows by timeIn (most recent first / descending)
+    occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
+    
+    // Get the sorted occupied row elements
+    const sortedOccupiedRows = occupiedRows.map(item => item.row);
+    
+    // Sort available rows by their original order
+    availableRows.sort((a, b) => {
+        const aIndex = originalOrder.indexOf(a.dataset.slot);
+        const bIndex = originalOrder.indexOf(b.dataset.slot);
+        return aIndex - bIndex;
+    });
+    
+    // Combine: occupied rows (newest first) followed by available rows (original order)
+    const sortedRows = [...sortedOccupiedRows, ...availableRows];
+    
+    // Re-append sorted rows
+    sortedRows.forEach(row => tbody.appendChild(row));
+
+    document.getElementById('stat-available').textContent = av; 
+    document.getElementById('stat-occupied').textContent = oc;
+    document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
+    document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
+    document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
+    document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
+}
 
         function renderTodayStats() {
             let count = 0; 
