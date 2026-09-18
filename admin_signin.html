@@ -508,416 +508,497 @@
 
     </div>
 
-    <script>
-        /* ── Firebase Config ── */
-        const firebaseConfig = {
-            apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
-            databaseURL: "https://ipark-ultrasonic-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId:   "ipark-ultrasonic",
-            appId:       "1:1024113272044:web:d200b4b1dba5c04f4bf1c9"
+<script>
+    /* ── Firebase Config ── */
+    const firebaseConfig = {
+        apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
+        databaseURL: "https://ipark-ultrasonic-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId:   "ipark-ultrasonic",
+        appId:       "1:1024113272044:web:d200b4b1dba5c04f4bf1c9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.database();
+
+    /* ── Helper for Status Messages ── */
+    function setStatus(elementId, text, type) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const parentCard = el.closest('.auth-card');
+        if (parentCard) {
+            parentCard.querySelectorAll('.status-message').forEach(msg => {
+                msg.classList.remove('visible');
+                const txt = msg.querySelector('.status-text');
+                if (txt) txt.textContent = '';
+            });
+        }
+
+        const textSpan = el.querySelector('.status-text');
+        if (textSpan) textSpan.textContent = text;
+
+        if (text) {
+            el.classList.add('visible');
+        } else {
+            el.classList.remove('visible');
+        }
+    }
+
+    /* ── View Switcher Logic ── */
+    let isTransitioning = false;
+
+    function showView(viewId) {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        const currentVisible = document.querySelector('.auth-card.visible');
+        const target = document.getElementById(viewId);
+
+        if (!target) {
+            isTransitioning = false;
+            return;
+        }
+
+        if (currentVisible && currentVisible.id === viewId) {
+            isTransitioning = false;
+            return;
+        }
+
+        if (currentVisible) {
+            currentVisible.classList.add('exit');
+            
+            setTimeout(() => {
+                currentVisible.classList.remove('visible');
+                currentVisible.classList.remove('exit');
+                currentVisible.style.display = 'none';
+                
+                showTargetCard(target);
+            }, 400);
+        } else {
+            showTargetCard(target);
+        }
+
+        document.querySelectorAll('.status-message').forEach(m => { 
+            m.classList.remove('visible'); 
+            const txt = m.querySelector('.status-text');
+            if (txt) txt.textContent = '';
+        });
+        document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
+    }
+
+    function showTargetCard(target) {
+        target.style.display = 'block';
+        void target.offsetWidth;
+        target.classList.add('visible');
+        
+        setTimeout(() => {
+            isTransitioning = false;
+        }, 500);
+    }
+
+    function friendlyError(code) {
+        switch(code) {
+            case 'auth/invalid-email':       return 'Invalid email address format.';
+            case 'auth/user-disabled':       return 'This administrator account has been disabled.';
+            case 'auth/user-not-found':      return 'Account not found. Please request access.';
+            case 'auth/wrong-password':      return 'Incorrect Password';
+            case 'auth/invalid-credential':  return 'Incorrect Password';
+            case 'auth/invalid-login-credentials': return 'Incorrect Password';
+            case 'auth/email-already-in-use':return 'Email address is already registered.';
+            case 'auth/weak-password':       return 'Password is too weak. Use at least 6 characters.';
+            case 'auth/too-many-requests':   return 'Too many failed attempts. Please try again later.';
+            default:                         return 'Authentication failed. Please verify credentials.';
+        }
+    }
+
+    function findUserByUsername(username) {
+        return new Promise((resolve, reject) => {
+            db.ref('adminUsers').orderByChild('username').equalTo(username).once('value')
+                .then(snap => {
+                    if (snap.exists()) {
+                        const users = snap.val();
+                        const uid = Object.keys(users)[0];
+                        const userData = users[uid];
+                        resolve({ uid, ...userData });
+                    } else {
+                        resolve(null);
+                    }
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    function checkPendingApproval(username) {
+        return new Promise((resolve, reject) => {
+            db.ref('pendingAdmins').orderByChild('username').equalTo(username).once('value')
+                .then(snap => {
+                    if (snap.exists()) {
+                        const users = snap.val();
+                        const uid = Object.keys(users)[0];
+                        const userData = users[uid];
+                        resolve({ uid, ...userData });
+                    } else {
+                        resolve(null);
+                    }
+                })
+                .catch(err => reject(err));
+        });
+    }
+
+    /* ✅ FIX: Writes session ID to sessionStorage (matches admin4.html) */
+    function createAdminSession(uid, name, email, role, username) {
+        const sessionsRef = db.ref('adminSessions');
+        const newSessionRef = sessionsRef.push();
+        
+        const sessionData = {
+            uid: uid,
+            name: name,
+            username: username || 'N/A',
+            email: email,
+            role: role,
+            loginTime: Date.now(),
+            logoutTime: null,
+            status: 'active',
+            date: new Date().toLocaleDateString('en-PH'),
+            loginTimeFormatted: new Date().toLocaleTimeString('en-PH'),
+            timestamp: firebase.database.ServerValue.TIMESTAMP
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db   = firebase.database();
+        
+        return newSessionRef.set(sessionData).then(() => {
+            sessionStorage.setItem('adminSessionId', newSessionRef.key);   // ✅ FIX
+            localStorage.setItem('adminSessionId', newSessionRef.key);     // ✅ FIX: also write to localStorage for fallback
+            return newSessionRef.key;
+        });
+    }
 
-        /* ── Helper for Status Messages ── */
-        function setStatus(elementId, text, type) {
-            const el = document.getElementById(elementId);
-            if (!el) return;
+    /* ── Helper: Record a failed attempt with proper counting ── */
+    function recordFailedAttempt(uid) {
+        return db.ref('adminUsers/' + uid + '/failedAttempts').once('value')
+            .then(snap => {
+                const current = snap.val() || 0;
+                const attempts = current + 1;
+                const passEl = document.getElementById('login-password');
 
-            const parentCard = el.closest('.auth-card');
+                if (attempts >= 3) {
+                    return db.ref('adminUsers/' + uid).update({
+                        failedAttempts: 3,
+                        blocked: true
+                    }).then(() => {
+                        setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                        passEl.classList.add('field-error');
+                    });
+                } else if (attempts === 2) {
+                    return db.ref('adminUsers/' + uid).update({ failedAttempts: 2 })
+                        .then(() => {
+                            setStatus('signin-error-msg', '1 more wrong attempt or wrong password the account will automatically block');
+                            passEl.classList.add('field-error');
+                        });
+                } else {
+                    return db.ref('adminUsers/' + uid).update({ failedAttempts: 1 })
+                        .then(() => {
+                            setStatus('signin-error-msg', 'Incorrect Password');
+                            passEl.classList.add('field-error');
+                        });
+                }
+            });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ✅ Sign In Handler — with throttle handling + double-redirect guard
+       ═══════════════════════════════════════════════════════════ */
+    let isSigningIn = false;
+    let isAttemptingSignIn = false;   // ✅ NEW: guards onAuthStateChanged from double-redirecting
+
+    function attemptSignIn() {
+        if (isSigningIn) return;
+        
+        const usernameEl = document.getElementById('login-username');
+        const passEl = document.getElementById('login-password');
+        const btn = document.getElementById('signin-btn');
+
+        setStatus('signin-error-msg', '');
+        setStatus('signin-warning-msg', '');
+        setStatus('signin-success-msg', '');
+        usernameEl.classList.remove('field-error');
+        passEl.classList.remove('field-error');
+
+        const username = usernameEl.value.trim();
+        const password = passEl.value;
+
+        if (!username) { usernameEl.classList.add('field-error'); return; }
+        if (!password) { passEl.classList.add('field-error'); return; }
+
+        isSigningIn = true;
+        isAttemptingSignIn = true;   // ✅ FIX: prevents onAuthStateChanged from double-redirecting
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        findUserByUsername(username)
+            .then(userData => {
+                if (!userData) {
+                    return checkPendingApproval(username)
+                        .then(pendingData => {
+                            if (pendingData) {
+                                setStatus('signin-warning-msg', 'Your account is pending approval. Please wait for administrator approval.');
+                                resetSignInBtn();
+                                usernameEl.classList.add('field-error');
+                            } else {
+                                setStatus('signin-error-msg', 'Account not found. Please request access.');
+                                usernameEl.classList.add('field-error');
+                                resetSignInBtn();
+                            }
+                        });
+                }
+
+                // ✅ Blocked check FIRST — before attempting Firebase Auth
+                if (userData.blocked === true) {
+                    setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                    usernameEl.classList.add('field-error');
+                    resetSignInBtn();
+                    return;
+                }
+
+                const email = userData.email;
+                const name = userData.name || username;
+                const role = userData.role || 'admin';
+                const uid = userData.uid;
+
+                return auth.signInWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        const user = userCredential.user;
+                        // ✅ Successful login → reset counter
+                        return db.ref('adminUsers/' + uid).update({ failedAttempts: 0 })
+                            .then(() => createAdminSession(user.uid, name, user.email, role, username))
+                            .then(() => {
+                                localStorage.setItem('adminName', name);
+                                localStorage.setItem('adminUsername', username);
+                                localStorage.setItem('adminEmail', user.email);
+                                localStorage.setItem('adminRole', role);
+                                localStorage.setItem('adminUid', user.uid);
+                                window.location.href = 'admin4.html';
+                            });
+                    })
+                    .catch(err => {
+                        resetSignInBtn();
+
+                        const wrongPassCodes = [
+                            'auth/wrong-password',
+                            'auth/invalid-credential',
+                            'auth/invalid-login-credentials'
+                        ];
+
+                        // ✅ Case 1: Definitely a wrong password → count it
+                        if (wrongPassCodes.includes(err.code)) {
+                            return recordFailedAttempt(uid);
+                        }
+
+                        // ✅ Case 2: Firebase is throttling.
+                        //    - If DB counter >= 2 → this is the real 3rd attempt → block
+                        //    - If DB counter < 2 → just throttling from earlier → DON'T count
+                        if (err.code === 'auth/too-many-requests') {
+                            return db.ref('adminUsers/' + uid + '/failedAttempts').once('value')
+                                .then(snap => {
+                                    const current = snap.val() || 0;
+
+                                    if (current >= 2) {
+                                        return db.ref('adminUsers/' + uid).update({
+                                            failedAttempts: 3,
+                                            blocked: true
+                                        }).then(() => {
+                                            setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                                            passEl.classList.add('field-error');
+                                        });
+                                    } else {
+                                        setStatus('signin-error-msg', 'Too many attempts from this device. Please wait a few minutes and try again.');
+                                    }
+                                });
+                        }
+
+                        if (err.code === 'auth/user-not-found') {
+                            setStatus('signin-error-msg', 'Account not found. Please request access.');
+                            usernameEl.classList.add('field-error');
+                        } else {
+                            setStatus('signin-error-msg', friendlyError(err.code));
+                        }
+                    });
+            })
+            .catch(err => {
+                resetSignInBtn();
+                setStatus('signin-error-msg', 'An unexpected error occurred. Please try again.');
+            });
+    }
+
+    function resetSignInBtn() {
+        isSigningIn = false;
+        isAttemptingSignIn = false;   // ✅ FIX
+        const btn = document.getElementById('signin-btn');
+        btn.classList.remove('loading');
+        btn.disabled = false;
+    }
+
+    document.getElementById('signin-btn').addEventListener('click', attemptSignIn);
+    document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
+    document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
+
+    /* ── Registration Handler ── */
+    let isRegistering = false;
+    function attemptRegister() {
+        if (isRegistering) return;
+        const nameEl  = document.getElementById('reg-name');
+        const usernameEl = document.getElementById('reg-username');
+        const emailEl = document.getElementById('reg-email');
+        const passEl  = document.getElementById('reg-password');
+        const confEl  = document.getElementById('reg-confirm');
+        const btn     = document.getElementById('register-btn');
+
+        setStatus('register-error-msg', '');
+        [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.classList.remove('field-error'));
+
+        if (!nameEl.value.trim())  { nameEl.classList.add('field-error'); return; }
+        if (!usernameEl.value.trim()) { usernameEl.classList.add('field-error'); return; }
+        if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
+        if (!passEl.value)         { passEl.classList.add('field-error'); return; }
+        if (passEl.value !== confEl.value) { 
+            confEl.classList.add('field-error'); 
+            setStatus('register-error-msg', 'Passwords do not match.'); 
+            return; 
+        }
+
+        findUserByUsername(usernameEl.value.trim())
+            .then(existingUser => {
+                if (existingUser) {
+                    setStatus('register-error-msg', 'Username already taken. Please choose another.');
+                    usernameEl.classList.add('field-error');
+                    return;
+                }
+                return checkPendingApproval(usernameEl.value.trim())
+                    .then(pendingUser => {
+                        if (pendingUser) {
+                            setStatus('register-error-msg', 'Username already has a pending request. Please wait for approval.');
+                            usernameEl.classList.add('field-error');
+                            return;
+                        }
+                        return proceedWithRegistration();
+                    });
+            })
+            .catch(() => {
+                proceedWithRegistration();
+            });
+
+        function proceedWithRegistration() {
+            isRegistering = true;
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            auth.createUserWithEmailAndPassword(emailEl.value.trim(), passEl.value)
+                .then(userCredential => {
+                    const uid = userCredential.user.uid;
+                    const requestData = {
+                        name: nameEl.value.trim(),
+                        username: usernameEl.value.trim(),
+                        email: emailEl.value.trim(),
+                        requestedAt: Date.now(),
+                        role: 'admin', 
+                        approved: false,
+                        blocked: false,
+                        failedAttempts: 0
+                    };
+
+                    return db.ref('pendingAdmins/' + uid).set(requestData).then(() => auth.signOut());
+                })
+                .then(() => {
+                    isRegistering = false;
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    
+                    showView('view-signin');
+                    setStatus('signin-success-msg', 'Registration submitted! Please await administrator approval.');
+                    
+                    [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.value = '');
+                })
+                .catch(err => {
+                    isRegistering = false;
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    setStatus('register-error-msg', friendlyError(err.code));
+                    if (err.code === 'auth/email-already-in-use') emailEl.classList.add('field-error');
+                });
+        }
+    }
+
+    document.getElementById('register-btn').addEventListener('click', attemptRegister);
+    document.getElementById('reg-confirm').addEventListener('keydown', e => { if (e.key === 'Enter') attemptRegister(); });
+
+    /* ── Forgot Password Handler ── */
+    let isResetting = false;
+    function attemptReset() {
+        if (isResetting) return;
+        const emailEl = document.getElementById('forgot-email');
+        const btn     = document.getElementById('forgot-btn');
+
+        setStatus('forgot-error-msg', '');
+        emailEl.classList.remove('field-error');
+
+        if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
+
+        isResetting = true;
+        btn.classList.add('loading');
+        btn.disabled = true;
+
+        auth.sendPasswordResetEmail(emailEl.value.trim())
+            .then(() => {
+                isResetting = false;
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                showView('view-signin');
+                setStatus('signin-success-msg', 'Password reset instructions have been sent to your email.');
+                emailEl.value = '';
+            })
+            .catch(err => {
+                isResetting = false;
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                setStatus('forgot-error-msg', friendlyError(err.code));
+                emailEl.classList.add('field-error');
+            });
+    }
+
+    document.getElementById('forgot-btn').addEventListener('click', attemptReset);
+    document.getElementById('forgot-email').addEventListener('keydown', e => { if (e.key === 'Enter') attemptReset(); });
+
+    /* ── Clear Messages on Input ── */
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.addEventListener('input', () => {
+            input.classList.remove('field-error');
+            const parentCard = input.closest('.auth-card');
             if (parentCard) {
                 parentCard.querySelectorAll('.status-message').forEach(msg => {
                     msg.classList.remove('visible');
-                    const txt = msg.querySelector('.status-text');
-                    if (txt) txt.textContent = '';
                 });
             }
+        });
+    });
 
-            const textSpan = el.querySelector('.status-text');
-            if (textSpan) textSpan.textContent = text;
-
-            if (text) {
-                el.classList.add('visible');
-            } else {
-                el.classList.remove('visible');
-            }
-        }
-
-        /* ── View Switcher Logic with Smoother Transitions ── */
-        let isTransitioning = false;
-
-        function showView(viewId) {
-            if (isTransitioning) return;
-            isTransitioning = true;
-
-            const currentVisible = document.querySelector('.auth-card.visible');
-            const target = document.getElementById(viewId);
-
-            if (!target) {
-                isTransitioning = false;
-                return;
-            }
-
-            if (currentVisible && currentVisible.id === viewId) {
-                isTransitioning = false;
-                return;
-            }
-
-            if (currentVisible) {
-                currentVisible.classList.add('exit');
-                
-                setTimeout(() => {
-                    currentVisible.classList.remove('visible');
-                    currentVisible.classList.remove('exit');
-                    currentVisible.style.display = 'none';
-                    
-                    showTargetCard(target);
-                }, 400);
-            } else {
-                showTargetCard(target);
-            }
-
-            document.querySelectorAll('.status-message').forEach(m => { 
-                m.classList.remove('visible'); 
-                const txt = m.querySelector('.status-text');
-                if (txt) txt.textContent = '';
-            });
-            document.querySelectorAll('.form-input').forEach(i => i.classList.remove('field-error'));
-        }
-
-        function showTargetCard(target) {
-            target.style.display = 'block';
-            void target.offsetWidth;
-            target.classList.add('visible');
-            
-            setTimeout(() => {
-                isTransitioning = false;
-            }, 500);
-        }
-
-        function friendlyError(code) {
-            switch(code) {
-                case 'auth/invalid-email':       return 'Invalid email address format.';
-                case 'auth/user-disabled':       return 'This administrator account has been disabled.';
-                case 'auth/user-not-found':      return 'Account not found. Please request access.';
-                case 'auth/wrong-password':      return 'Incorrect password. Please try again.';
-                case 'auth/email-already-in-use':return 'Email address is already registered.';
-                case 'auth/weak-password':       return 'Password is too weak. Use at least 6 characters.';
-                case 'auth/too-many-requests':   return 'Too many failed attempts. Please try again later.';
-                default:                         return 'Authentication failed. Please verify credentials.';
-            }
-        }
-
-        /* ── Function to find user by username ── */
-        function findUserByUsername(username) {
-            return new Promise((resolve, reject) => {
-                db.ref('adminUsers').orderByChild('username').equalTo(username).once('value')
-                    .then(snap => {
-                        if (snap.exists()) {
-                            const users = snap.val();
-                            const uid = Object.keys(users)[0];
-                            const userData = users[uid];
-                            resolve({ uid, ...userData });
-                        } else {
-                            resolve(null);
-                        }
-                    })
-                    .catch(err => reject(err));
-            });
-        }
-
-        /* ── Function to check if user is pending approval ── */
-        function checkPendingApproval(username) {
-            return new Promise((resolve, reject) => {
-                db.ref('pendingAdmins').orderByChild('username').equalTo(username).once('value')
-                    .then(snap => {
-                        if (snap.exists()) {
-                            const users = snap.val();
-                            const uid = Object.keys(users)[0];
-                            const userData = users[uid];
-                            resolve({ uid, ...userData });
-                        } else {
-                            resolve(null);
-                        }
-                    })
-                    .catch(err => reject(err));
-            });
-        }
-
-        /* ── Function to create admin session (Time In) ── */
-        function createAdminSession(uid, name, email, role, username) {
-            const sessionsRef = db.ref('adminSessions');
-            const newSessionRef = sessionsRef.push();
-            
-            const sessionData = {
-                uid: uid,
-                name: name,
-                username: username || 'N/A',
-                email: email,
-                role: role,
-                loginTime: Date.now(),
-                logoutTime: null,
-                status: 'active',
-                date: new Date().toLocaleDateString('en-PH'),
-                loginTimeFormatted: new Date().toLocaleTimeString('en-PH'),
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            return newSessionRef.set(sessionData).then(() => {
-                localStorage.setItem('adminSessionId', newSessionRef.key);
-                return newSessionRef.key;
-            });
-        }
-
-        /* ── Sign In Handler ── */
-        let isSigningIn = false;
-        function attemptSignIn() {
-            if (isSigningIn) return;
-            
-            const usernameEl = document.getElementById('login-username');
-            const passEl = document.getElementById('login-password');
-            const btn = document.getElementById('signin-btn');
-
-            // Clear all sign-in messages
-            setStatus('signin-error-msg', '');
-            setStatus('signin-warning-msg', '');
-            setStatus('signin-success-msg', '');
-            usernameEl.classList.remove('field-error');
-            passEl.classList.remove('field-error');
-
-            const username = usernameEl.value.trim();
-            const password = passEl.value;
-
-            if (!username) { usernameEl.classList.add('field-error'); return; }
-            if (!password) { passEl.classList.add('field-error'); return; }
-
-            isSigningIn = true;
-            btn.classList.add('loading');
-            btn.disabled = true;
-
-            // First check if username exists in adminUsers
-            findUserByUsername(username)
-                .then(userData => {
-                    if (!userData) {
-                        // Username not in adminUsers, check pendingAdmins
-                        return checkPendingApproval(username)
-                            .then(pendingData => {
-                                if (pendingData) {
-                                    // User is pending approval
-                                    setStatus('signin-warning-msg', 'Your account is pending approval. Please wait for administrator approval.');
-                                    resetSignInBtn();
-                                    usernameEl.classList.add('field-error');
-                                    return;
-                                } else {
-                                    // Username not found anywhere
-                                    setStatus('signin-error-msg', 'Account not found. Please request access.');
-                                    usernameEl.classList.add('field-error');
-                                    resetSignInBtn();
-                                    return;
-                                }
-                            });
+    /* ═══════════════════════════════════════════════════════════
+       ✅ FIXED: Auto-login Check
+       Only redirects if the user already had a session BEFORE this page load.
+       If attemptSignIn is running, it handles the redirect itself.
+       ═══════════════════════════════════════════════════════════ */
+    auth.onAuthStateChanged(user => {
+        if (user && !isAttemptingSignIn) {
+            db.ref('adminUsers/' + user.uid).once('value', snap => {
+                if (snap.exists()) {
+                    const userData = snap.val();
+                    if (!userData.blocked) {
+                        window.location.href = 'admin4.html';
+                    } else {
+                        auth.signOut();
                     }
-
-                    // User found in adminUsers, proceed with login
-                    const email = userData.email;
-                    const name = userData.name || username;
-                    const role = userData.role || 'admin';
-
-                    return auth.signInWithEmailAndPassword(email, password)
-                        .then(userCredential => {
-                            const user = userCredential.user;
-                            return createAdminSession(user.uid, name, user.email, role, username)
-                                .then(() => {
-                                    localStorage.setItem('adminName', name);
-                                    localStorage.setItem('adminUsername', username);
-                                    localStorage.setItem('adminEmail', user.email);
-                                    localStorage.setItem('adminRole', role);
-                                    localStorage.setItem('adminUid', user.uid);
-                                    
-                                    window.location.href = 'admin4.html';
-                                });
-                        })
-                        .catch(err => {
-                            resetSignInBtn();
-                            if (err.code === 'auth/wrong-password') {
-                                setStatus('signin-error-msg', 'Incorrect password. Please try again.');
-                                passEl.classList.add('field-error');
-                            } else if (err.code === 'auth/user-not-found') {
-                                setStatus('signin-error-msg', 'Account not found. Please request access.');
-                                usernameEl.classList.add('field-error');
-                            } else {
-                                setStatus('signin-error-msg', friendlyError(err.code));
-                            }
-                        });
-                })
-                .catch(err => {
-                    resetSignInBtn();
-                    setStatus('signin-error-msg', 'An unexpected error occurred. Please try again.');
-                });
-        }
-
-        function resetSignInBtn() {
-            isSigningIn = false;
-            const btn = document.getElementById('signin-btn');
-            btn.classList.remove('loading');
-            btn.disabled = false;
-        }
-
-        document.getElementById('signin-btn').addEventListener('click', attemptSignIn);
-        document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
-        document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') attemptSignIn(); });
-
-        /* ── Registration Handler ── */
-        let isRegistering = false;
-        function attemptRegister() {
-            if (isRegistering) return;
-            const nameEl  = document.getElementById('reg-name');
-            const usernameEl = document.getElementById('reg-username');
-            const emailEl = document.getElementById('reg-email');
-            const passEl  = document.getElementById('reg-password');
-            const confEl  = document.getElementById('reg-confirm');
-            const btn     = document.getElementById('register-btn');
-
-            setStatus('register-error-msg', '');
-            [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.classList.remove('field-error'));
-
-            if (!nameEl.value.trim())  { nameEl.classList.add('field-error'); return; }
-            if (!usernameEl.value.trim()) { usernameEl.classList.add('field-error'); return; }
-            if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
-            if (!passEl.value)         { passEl.classList.add('field-error'); return; }
-            if (passEl.value !== confEl.value) { 
-                confEl.classList.add('field-error'); 
-                setStatus('register-error-msg', 'Passwords do not match.'); 
-                return; 
-            }
-
-            // Check if username already exists in adminUsers
-            findUserByUsername(usernameEl.value.trim())
-                .then(existingUser => {
-                    if (existingUser) {
-                        setStatus('register-error-msg', 'Username already taken. Please choose another.');
-                        usernameEl.classList.add('field-error');
-                        return;
-                    }
-                    // Check if username is pending approval
-                    return checkPendingApproval(usernameEl.value.trim())
-                        .then(pendingUser => {
-                            if (pendingUser) {
-                                setStatus('register-error-msg', 'Username already has a pending request. Please wait for approval.');
-                                usernameEl.classList.add('field-error');
-                                return;
-                            }
-                            return proceedWithRegistration();
-                        });
-                })
-                .catch(() => {
-                    proceedWithRegistration();
-                });
-
-            function proceedWithRegistration() {
-                isRegistering = true;
-                btn.classList.add('loading');
-                btn.disabled = true;
-
-                auth.createUserWithEmailAndPassword(emailEl.value.trim(), passEl.value)
-                    .then(userCredential => {
-                        const uid = userCredential.user.uid;
-                        const requestData = {
-                            name: nameEl.value.trim(),
-                            username: usernameEl.value.trim(),
-                            email: emailEl.value.trim(),
-                            requestedAt: Date.now(),
-                            role: 'admin', 
-                            approved: false
-                        };
-
-                        return db.ref('pendingAdmins/' + uid).set(requestData).then(() => auth.signOut());
-                    })
-                    .then(() => {
-                        isRegistering = false;
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
-                        
-                        showView('view-signin');
-                        setStatus('signin-success-msg', 'Registration submitted! Please await administrator approval.');
-                        
-                        [nameEl, usernameEl, emailEl, passEl, confEl].forEach(el => el.value = '');
-                    })
-                    .catch(err => {
-                        isRegistering = false;
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
-                        setStatus('register-error-msg', friendlyError(err.code));
-                        if (err.code === 'auth/email-already-in-use') emailEl.classList.add('field-error');
-                    });
-            }
-        }
-
-        document.getElementById('register-btn').addEventListener('click', attemptRegister);
-        document.getElementById('reg-confirm').addEventListener('keydown', e => { if (e.key === 'Enter') attemptRegister(); });
-
-        /* ── Forgot Password Handler ── */
-        let isResetting = false;
-        function attemptReset() {
-            if (isResetting) return;
-            const emailEl = document.getElementById('forgot-email');
-            const btn     = document.getElementById('forgot-btn');
-
-            setStatus('forgot-error-msg', '');
-            emailEl.classList.remove('field-error');
-
-            if (!emailEl.value.trim()) { emailEl.classList.add('field-error'); return; }
-
-            isResetting = true;
-            btn.classList.add('loading');
-            btn.disabled = true;
-
-            auth.sendPasswordResetEmail(emailEl.value.trim())
-                .then(() => {
-                    isResetting = false;
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-
-                    showView('view-signin');
-                    setStatus('signin-success-msg', 'Password reset instructions have been sent to your email.');
-                    emailEl.value = '';
-                })
-                .catch(err => {
-                    isResetting = false;
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-                    setStatus('forgot-error-msg', friendlyError(err.code));
-                    emailEl.classList.add('field-error');
-                });
-        }
-
-        document.getElementById('forgot-btn').addEventListener('click', attemptReset);
-        document.getElementById('forgot-email').addEventListener('keydown', e => { if (e.key === 'Enter') attemptReset(); });
-
-        /* ── Clear Messages on Input ── */
-        document.querySelectorAll('.form-input').forEach(input => {
-            input.addEventListener('input', () => {
-                input.classList.remove('field-error');
-                const parentCard = input.closest('.auth-card');
-                if (parentCard) {
-                    parentCard.querySelectorAll('.status-message').forEach(msg => {
-                        msg.classList.remove('visible');
-                    });
                 }
             });
-        });
-
-        /* ── Auto-login Check ── */
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                db.ref('adminUsers/' + user.uid).once('value', snap => {
-                    if (snap.exists()) {
-                        window.location.href = 'admin4.html';
-                    }
-                });
-            }
-        });
-    </script>
+        }
+    });
+</script>
 </body>
 </html>

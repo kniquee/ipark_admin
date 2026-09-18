@@ -425,7 +425,6 @@
         .delete-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
         .delete-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
-        /* ✅ NEW: Unlock button styling */
         .unlock-btn { 
             display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .unlock-btn:hover { background: rgba(251, 191, 36, 0.25); transform: translateY(-1px); }
@@ -471,11 +470,7 @@
         /* ============================================
            PRINT PREVIEW STYLES
            ============================================ */
-        /* ============================================
-   PRINT PREVIEW STYLES - FIXED: NO EXTRA BLANK PAGES
-   ============================================ */
 @media print {
-    /* Reset everything for clean print */
     html, body {
         background: white !important;
         margin: 0 !important;
@@ -486,13 +481,11 @@
         overflow: visible !important;
     }
     
-    /* Hide everything except the print area */
     body * { 
         visibility: hidden !important; 
         display: none !important;
     }
     
-    /* Show only the print area and its children */
     #print-area, 
     #print-area * { 
         visibility: visible !important; 
@@ -583,7 +576,6 @@
         background: #f9f9f9 !important; 
     }
     
-    /* Let user choose paper size - no forced size */
     @page { 
         margin: 8mm 8mm !important;
         size: auto !important;
@@ -615,7 +607,6 @@
     <div class="modal-overlay" id="modal-approve"><div class="modal"><div class="modal-title">Approve Account</div><div class="modal-desc" id="approve-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="approve-cancel">Cancel</button><button class="modal-confirm-green" id="approve-confirm">Approve</button></div></div></div>
     <div class="modal-overlay" id="modal-reject"><div class="modal"><div class="modal-title">Reject Account</div><div class="modal-desc" id="reject-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="reject-cancel">Cancel</button><button class="modal-confirm-red" id="reject-confirm">Reject</button></div></div></div>
     <div class="modal-overlay" id="modal-delete-admin"><div class="modal"><div class="modal-title">Delete Admin Account</div><div class="modal-desc" id="delete-admin-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="delete-admin-cancel">Cancel</button><button class="modal-confirm-red" id="delete-admin-confirm">Delete</button></div></div></div>
-    <!-- ✅ NEW: Modal for Unlock confirmation -->
     <div class="modal-overlay" id="modal-unlock"><div class="modal"><div class="modal-title">Unlock Account</div><div class="modal-desc" id="unlock-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="unlock-cancel">Cancel</button><button class="modal-confirm-green" id="unlock-confirm">Unlock</button></div></div></div>
 
     <div class="layout">
@@ -867,7 +858,6 @@
                                         Admin Sign-In History Audits
                                     </div>
                                 </div>
-                                <!-- RESTRUCTURED: FILTER & PRINT AT THE TOP, BUTTON GROUP AT THE BOTTOM -->
                                 <div class="audit-controls-container">
                                     <div class="audit-controls-bottom">
                                         <div class="date-search-wrap">
@@ -958,6 +948,7 @@
         let currentFilteredSessions = [];
         let currentSessionRefId = null;
         let currentActiveUid = null;
+        let sessionResolved = false;   // ✅ FIX: prevents double session creation
 
         const SVG_ICONS = {
             dashboard: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
@@ -979,24 +970,26 @@
             return t ? `<span class="time-val">${new Date(t).toLocaleTimeString('en-PH')}</span>` : '<span class="time-val empty">—</span>'; 
         }
         
-        // ✅ FIXED: durStr function handles invalid timeOut values
         function durStr(tIn, tOut) { 
             const start = parseTimestamp(tIn);
             if(!start) return '—'; 
             const end = parseTimestamp(tOut) || Date.now();
-            // If timeOut is less than timeIn, use current time (or return 0s if that's also invalid)
             let s = Math.floor((end - start)/1000);
             if (s < 0) {
-                // If timeOut is in the past, use current time
                 const now = Date.now();
                 s = Math.floor((now - start)/1000);
-                if (s < 0) return '0s'; // Fallback safety
+                if (s < 0) return '0s';
             }
             const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; 
             return h>0?`${h}h ${m}m ${sec}s` : m>0?`${m}m ${sec}s` : `${sec}s`; 
         }
 
-        /* ── Authentication Handlers ── */
+        /* ═══════════════════════════════════════════════════════════
+           ✅ FIXED: Idempotent session management
+           - sessionResolved flag prevents multiple listener firings from creating sessions
+           - Checks BOTH sessionStorage and localStorage for the stored ID
+           - Reuses active session, only creates new one on real fresh login
+           ═══════════════════════════════════════════════════════════ */
         auth.onAuthStateChanged(user => {
             if (!user) { window.location.href = 'admin_signin.html'; return; }
             currentActiveUid = user.uid;
@@ -1007,6 +1000,20 @@
                 if (!data) {
                     auth.signOut().then(() => {
                         localStorage.clear();
+                        sessionStorage.clear();
+                        window.location.href = 'admin_signin.html';
+                    });
+                    return;
+                }
+
+                // ✅ If this admin has been blocked while logged in, force them out
+                if (data.blocked === true) {
+                    if (currentSessionRefId) {
+                        db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
+                    }
+                    auth.signOut().then(() => {
+                        localStorage.clear();
+                        sessionStorage.clear();
                         window.location.href = 'admin_signin.html';
                     });
                     return;
@@ -1034,27 +1041,51 @@
                     document.getElementById('superadmin-management-blocks').style.display = 'none';
                 }
 
-                const storedSessionId = localStorage.getItem('adminSessionId');
-                if (!storedSessionId) {
+                // ═══════════════════════════════════════════════════════
+                // ✅ Session management — idempotent
+                // ═══════════════════════════════════════════════════════
+                if (sessionResolved) {
+                    // Already handled — don't create another session
+                    return;
+                }
+                sessionResolved = true;
+
+                // ✅ Check BOTH storages — sign-in writes to both
+                const storedSessionId = sessionStorage.getItem('adminSessionId') || localStorage.getItem('adminSessionId');
+
+                function createNewSession() {
                     const logRef = db.ref('adminSessions').push();
                     currentSessionRefId = logRef.key;
+                    sessionStorage.setItem('adminSessionId', currentSessionRefId);
                     localStorage.setItem('adminSessionId', currentSessionRefId);
                     logRef.set({
                         uid: user.uid, name: name, username: username, email: user.email,
                         loginTime: Date.now(), logoutTime: null, role: role, sessionId: logRef.key
                     });
+                }
+
+                if (storedSessionId) {
+                    // Verify the stored session exists and is still active
+                    db.ref('adminSessions/' + storedSessionId).once('value').then(sessionSnap => {
+                        const session = sessionSnap.val();
+                        if (session && !session.logoutTime && session.uid === user.uid) {
+                            // ✅ Reuse the active session — no new record
+                            currentSessionRefId = storedSessionId;
+                        } else {
+                            // Stored session is stale/closed → create fresh
+                            createNewSession();
+                        }
+                    });
                 } else {
-                    currentSessionRefId = storedSessionId;
+                    createNewSession();
                 }
             });
         });
 
         /* ── Real-Time Listeners ── */
-        // ✅ FIXED: Ensures timeOut is always greater than timeIn
         db.ref('/parkingSlots').on('value', snap => {
             const newSlotsState = snap.val() || {};
             
-            // Only process state transitions if we already have a previous state loaded
             if (Object.keys(globalSlotsState).length > 0) {
                 ALL_SLOTS.forEach(slotId => {
                     const oldData = globalSlotsState[slotId];
@@ -1063,19 +1094,11 @@
                     const wasOccupied = oldData && (oldData.occupied === true || oldData.status === 'occupied');
                     const isNowAvailable = newData && (newData.occupied === false || newData.status === 'available');
 
-                    // When a slot transitions from occupied to available
                     if (wasOccupied && isNowAvailable && oldData.timeIn) {
                         let timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
                         
-                        // ✅ FIX: Ensure timeOut is ALWAYS greater than timeIn
                         if (timeOutVal <= oldData.timeIn) {
                             timeOutVal = Date.now();
-                            console.log(`⚠️ Fixed invalid logout time for slot ${slotId}: timeOut was ${new Date(timeOutVal).toLocaleTimeString()}, using current time instead`);
-                        }
-                        
-                        // Log warning if duration is suspiciously short (less than 1 second)
-                        if ((timeOutVal - oldData.timeIn) < 1000) {
-                            console.warn(`⚠️ Very short duration for slot ${slotId}: ${(timeOutVal - oldData.timeIn)/1000} seconds`);
                         }
                         
                         const newRecord = {
@@ -1083,10 +1106,8 @@
                             timeOut: timeOutVal
                         };
 
-                        // 1. Save permanently to Firebase /history
                         const newRef = db.ref(`/history/${slotId}`).push(newRecord);
 
-                        // 2. Instantly update local history object so UI reflects it immediately
                         if (!globalHistoryState) globalHistoryState = {};
                         if (!globalHistoryState[slotId]) globalHistoryState[slotId] = {};
                         globalHistoryState[slotId][newRef.key] = newRecord;
@@ -1094,10 +1115,8 @@
                 });
             }
 
-            // Update global slots state
             globalSlotsState = newSlotsState;
 
-            // Trigger full real-time re-renders instantly
             renderDashboardUI();
             processCombinedHistory();
             if (typeof renderTodayStats === 'function') renderTodayStats();
@@ -1118,17 +1137,13 @@
         });
 
         /* ── Render Dashboard UI ── */
-        // ✅ FIXED: Occupied slots sorted by most recent first, available slots keep original order
-        // ✅ FIXED: When slot becomes available, it moves back to its original position
         function renderDashboardUI() {
             let av = 0, oc = 0;
             const tbody = document.getElementById('slot-tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
             
-            // Define the original order of slots
             const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
             
-            // First, update all rows with current data and collect occupied rows with their timeIn
             const occupiedRows = [];
             const availableRows = [];
             
@@ -1146,7 +1161,6 @@
 
                 if(occupied) {
                     oc++;
-                    // Store the row with its timeIn for sorting
                     occupiedRows.push({ row, timeIn });
                 } else {
                     av++;
@@ -1154,23 +1168,18 @@
                 }
             });
             
-            // Sort occupied rows by timeIn (most recent first / descending)
             occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
             
-            // Get the sorted occupied row elements
             const sortedOccupiedRows = occupiedRows.map(item => item.row);
             
-            // Sort available rows by their original order
             availableRows.sort((a, b) => {
                 const aIndex = originalOrder.indexOf(a.dataset.slot);
                 const bIndex = originalOrder.indexOf(b.dataset.slot);
                 return aIndex - bIndex;
             });
             
-            // Combine: occupied rows (newest first) followed by available rows (original order)
             const sortedRows = [...sortedOccupiedRows, ...availableRows];
             
-            // Re-append sorted rows
             sortedRows.forEach(row => tbody.appendChild(row));
 
             document.getElementById('stat-available').textContent = av; 
@@ -1353,49 +1362,7 @@
             renderAdminSessionsTable();
         }));
 
-        /* ── Active Admin Accounts Management ── */
-        // ✅ NEW: Function to unlock a user
-        function unlockUser(username, name) {
-            document.getElementById('unlock-desc').textContent = `Are you sure you want to unlock "${name}" (${username})?\nThey will be able to log in again.`;
-            document.getElementById('modal-unlock').classList.add('visible');
-            
-            // Store the username for the confirm action
-            document.getElementById('unlock-confirm').dataset.username = username;
-        }
-
-        // ✅ NEW: Confirm unlock
-        document.getElementById('unlock-confirm').addEventListener('click', function() {
-            const username = this.dataset.username;
-            if (!username) return;
-            
-            // Remove from lockouts
-            db.ref('userLockouts').orderByChild('username').equalTo(username).once('value')
-                .then(snap => {
-                    if (snap.exists()) {
-                        const key = Object.keys(snap.val())[0];
-                        db.ref('userLockouts/' + key).remove();
-                    }
-                });
-            
-            // Remove from failed attempts
-            db.ref('failedLoginAttempts').orderByChild('username').equalTo(username).once('value')
-                .then(snap => {
-                    if (snap.exists()) {
-                        const key = Object.keys(snap.val())[0];
-                        db.ref('failedLoginAttempts/' + key).remove();
-                    }
-                })
-                .then(() => {
-                    document.getElementById('modal-unlock').classList.remove('visible');
-                    // Refresh the admin list to update button states
-                    loadActiveAdmins();
-                });
-        });
-
-        document.getElementById('unlock-cancel').addEventListener('click', function() {
-            document.getElementById('modal-unlock').classList.remove('visible');
-        });
-
+        /* ── Active Admin Accounts Table ── */
         function loadActiveAdmins() {
             db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val() || {})
@@ -1410,31 +1377,26 @@
                     return;
                 }
 
-                // Check lockout status for each user
                 tbody.innerHTML = list.map((a, i) => {
                     const isMainAdmin = a.role === 'main_admin';
                     const isSelf = a.uid === currentActiveUid;
                     const canDelete = !(isMainAdmin && isSelf);
+                    const isBlocked = a.blocked === true;
 
                     const roleBadge = isMainAdmin
                         ? '<span class="role-badge main-admin">Main Admin</span>'
                         : '<span class="role-badge admin">Admin</span>';
 
-                    // Check if user is locked out
-                    let isLocked = false;
-                    db.ref('userLockouts').orderByChild('username').equalTo(a.username).once('value')
-                        .then(snap => {
-                            if (snap.exists()) {
-                                isLocked = true;
-                            }
-                        });
-
-                    // Build the actions HTML with unlock button if locked
                     let actionsHtml = '';
-                    if (isLocked) {
-                        actionsHtml = `<button class="unlock-btn" onclick="unlockUser('${a.username}', '${a.name || a.username}')">
+                    if (isBlocked) {
+                        actionsHtml = `<button class="unlock-btn" onclick="openUnlockModal('${a.uid}', '${(a.name || a.username).replace(/'/g, "\\'")}')">
                             <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                            Unlock
+                            Unblock
+                        </button>`;
+                    } else {
+                        actionsHtml = `<button class="delete-btn" ${!canDelete ? 'disabled title="Main Admins cannot delete their own account"' : ''} onclick="confirmDeleteAdmin('${a.uid}', '${(a.name || a.username).replace(/'/g, "\\'")}')">
+                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            Delete
                         </button>`;
                     }
 
@@ -1446,42 +1408,43 @@
                         <td>${roleBadge}</td>
                         <td style="text-align: center;">
                             ${actionsHtml}
-                            <button class="delete-btn" ${!canDelete ? 'disabled title="Main Admins cannot delete their own account"' : ''} onclick="confirmDeleteAdmin('${a.uid}', '${a.name || a.username}')">
-                                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                                Delete
-                            </button>
                         </td>
                     </tr>`;
                 }).join('');
-
-                // Re-check lockout status and update buttons
-                list.forEach((a, i) => {
-                    db.ref('userLockouts').orderByChild('username').equalTo(a.username).once('value')
-                        .then(snap => {
-                            if (snap.exists()) {
-                                const row = tbody.querySelectorAll('tr')[i];
-                                if (row) {
-                                    const actionsCell = row.querySelector('td:last-child');
-                                    if (!actionsCell.querySelector('.unlock-btn')) {
-                                        const unlockBtn = document.createElement('button');
-                                        unlockBtn.className = 'unlock-btn';
-                                        unlockBtn.innerHTML = `<svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Unlock`;
-                                        unlockBtn.onclick = function() { unlockUser(a.username, a.name || a.username); };
-                                        // Insert before the delete button
-                                        const deleteBtn = actionsCell.querySelector('.delete-btn');
-                                        if (deleteBtn) {
-                                            actionsCell.insertBefore(unlockBtn, deleteBtn);
-                                        } else {
-                                            actionsCell.appendChild(unlockBtn);
-                                        }
-                                    }
-                                }
-                            }
-                        });
-                });
             });
         }
 
+        /* ── Unlock Modal ── */
+        let adminToUnlock = null;
+
+        function openUnlockModal(uid, name) {
+            adminToUnlock = uid;
+            const desc = document.getElementById('unlock-desc');
+            if (desc) desc.textContent = `Are you sure you want to unblock administrator account "${name}"?\nThey will regain access to log in.`;
+            const modal = document.getElementById('modal-unlock');
+            if (modal) modal.classList.add('visible');
+        }
+
+        document.getElementById('unlock-cancel').addEventListener('click', () => {
+            document.getElementById('modal-unlock').classList.remove('visible');
+            adminToUnlock = null;
+        });
+
+        document.getElementById('unlock-confirm').addEventListener('click', () => {
+            if (!adminToUnlock) return;
+
+            db.ref('adminUsers/' + adminToUnlock).update({
+                blocked: false,
+                failedAttempts: 0
+            }).then(() => {
+                document.getElementById('modal-unlock').classList.remove('visible');
+                adminToUnlock = null;
+            }).catch(err => {
+                alert('Error unblocking account: ' + err.message);
+            });
+        });
+
+        /* ── Delete Modal Handlers ── */
         let deleteAdminUid = null;
         function confirmDeleteAdmin(uid, name) {
             if (uid === currentActiveUid) {
@@ -1683,7 +1646,9 @@
         document.getElementById('reject-cancel').onclick = () => document.getElementById('modal-reject').classList.remove('visible');
         document.getElementById('approve-confirm').onclick = () => {
             if(!pendingUid) return;
-            const up = {}; up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true }; up['/pendingAdmins/'+pendingUid] = null;
+            const up = {}; 
+            up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true, blocked: false, failedAttempts: 0 }; 
+            up['/pendingAdmins/'+pendingUid] = null;
             db.ref().update(up); document.getElementById('modal-approve').classList.remove('visible');
         };
         document.getElementById('reject-confirm').onclick = () => {
@@ -1696,7 +1661,11 @@
         document.getElementById('signout-cancel').onclick = () => document.getElementById('modal-signout').classList.remove('visible');
         document.getElementById('signout-confirm').onclick = () => {
             if (currentSessionRefId) db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
-            auth.signOut().then(() => { localStorage.clear(); window.location.href = 'admin_signin.html'; });
+            auth.signOut().then(() => { 
+                localStorage.clear(); 
+                sessionStorage.clear(); 
+                window.location.href = 'admin_signin.html'; 
+            });
         };
 
         /* ── Print Utilities ── */
@@ -1777,10 +1746,6 @@
                 }, 500);
             }, 300);
         }
-
-        window.addEventListener('beforeunload', () => {
-            if (currentSessionRefId) db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
-        });
     </script>
 </body>
 </html>
