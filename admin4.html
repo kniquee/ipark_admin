@@ -26,67 +26,71 @@
             --text-primary:  #f8fafc;
             --text-secondary:#94a3b8;
             --text-muted:    #64748b;
-
+            
+            /* Accent Colors */
             --accent:        #38bdf8;
             --accent-glow:   rgba(56, 189, 248, 0.35);
             --accent-soft:   rgba(56, 189, 248, 0.12);
             --accent-border: rgba(56, 189, 248, 0.3);
-
+            
             --green:         #10b981;
             --green-soft:    rgba(16, 185, 129, 0.12);
             --green-border:  rgba(16, 185, 129, 0.3);
-
+            
             --red:           #f43f5e;
             --red-soft:      rgba(244, 63, 94, 0.12);
             --red-border:    rgba(244, 63, 94, 0.3);
-
+            
             --yellow:        #f59e0b;
             --yellow-soft:   rgba(245, 158, 11, 0.12);
             --yellow-border: rgba(245, 158, 11, 0.3);
-
+            
             --purple:        #818cf8;
             --purple-soft:   rgba(129, 140, 248, 0.12);
             --purple-border: rgba(129, 140, 248, 0.3);
-
+            
             --mono:          'JetBrains Mono', monospace;
             --sans:          'Plus Jakarta Sans', sans-serif;
             --radius-sm:     8px;
             --radius-md:     12px;
             --radius-lg:     18px;
-
+            
             --table-cell-padding: 12px 18px;
             --table-header-padding: 14px 18px;
         }
 
-        html, body {
-            height: 100%;
-            background: var(--bg-base);
-            color: var(--text-primary);
-            font-family: var(--sans);
-            font-size: 14px;
-            line-height: 1.5;
+        html, body { 
+            height: 100%; 
+            background: var(--bg-base); 
+            color: var(--text-primary); 
+            font-family: var(--sans); 
+            font-size: 14px; 
+            line-height: 1.5; 
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Gradient Aura Overlay */
         body::before {
-            content: '';
-            position: fixed;
+            content: ''; 
+            position: fixed; 
             inset: 0;
-            background:
+            background: 
                 radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
                 radial-gradient(circle at 85% 80%, rgba(129, 140, 248, 0.07) 0%, transparent 45%),
                 radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 60%),
                 linear-gradient(180deg, #070a12 0%, #0d1322 100%);
-            pointer-events: none;
+            pointer-events: none; 
             z-index: 0;
         }
 
         .layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
 
+        /* General Icon Utilities */
         .icon-sm { width: 14px; height: 14px; stroke-width: 2; flex-shrink: 0; }
         .icon-md { width: 18px; height: 18px; stroke-width: 2; flex-shrink: 0; }
         .icon-lg { width: 22px; height: 22px; stroke-width: 2; flex-shrink: 0; }
 
+        /* Brand Logo Image */
         .brand-logo {
             height: 100px;
             width: auto;
@@ -95,48 +99,102 @@
             filter: brightness(0) saturate(100%) invert(64%) sepia(85%) saturate(1455%) hue-rotate(167deg) brightness(101%) contrast(96%);
         }
 
-        /* SIDEBAR */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: rgba(10, 15, 29, 0.7);
+        /* ============================================
+           ENHANCED SIDEBAR STYLES
+           ============================================ */
+        .sidebar { 
+            width: var(--sidebar-width); 
+            background: rgba(10, 15, 29, 0.7); 
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            height: 100vh; 
+            z-index: 50; 
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
         }
 
-        .sidebar-brand {
-            padding: 5px 24px 10px;
-            border-bottom: 1px solid var(--border);
+        .sidebar-brand { 
+            padding: 5px 24px 10px; 
+            border-bottom: 1px solid var(--border); 
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
 
-        .brand-name { font-size: 28px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
-        .brand-sub { font-size: 10px; color: var(--text-secondary); font-family: var(--mono); letter-spacing: 2px; margin-top: -8px; text-transform: uppercase; font-weight: 600; opacity: 0.8; }
+        .brand-name { 
+            font-size: 28px; 
+            font-weight: 800; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-sub { 
+            font-size: 10px; 
+            color: var(--text-secondary); 
+            font-family: var(--mono); 
+            letter-spacing: 2px; 
+            margin-top: -8px; 
+            text-transform: uppercase; 
+            font-weight: 600;
+            opacity: 0.8;
+        }
 
         .sidebar-nav { flex: 1; padding: 20px 14px; overflow-y: auto; }
-        .nav-section-label { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--mono); padding: 0 10px; margin: 22px 0 8px; }
+
+        .nav-section-label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-muted); 
+            letter-spacing: 1.5px; 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            padding: 0 10px; 
+            margin: 22px 0 8px; 
+        }
+
         .nav-section-label:first-child { margin-top: 4px; }
 
-        .nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600;
-            color: var(--text-secondary); cursor: pointer; margin-bottom: 6px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none;
-            letter-spacing: 0.2px; border: 1px solid transparent;
+        .nav-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            padding: 12px 16px; 
+            border-radius: var(--radius-md); 
+            font-size: 14px; 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            cursor: pointer; 
+            margin-bottom: 6px; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+            text-decoration: none; 
+            letter-spacing: 0.2px; 
+            border: 1px solid transparent;
         }
-        .nav-item:hover { background: rgba(255, 255, 255, 0.04); color: var(--text-primary); transform: translateX(3px); border-color: rgba(255, 255, 255, 0.05); }
-        .nav-item.active { background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%); color: var(--accent); border-color: var(--accent-border); font-weight: 700; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.12); }
+
+        .nav-item:hover { 
+            background: rgba(255, 255, 255, 0.04); 
+            color: var(--text-primary); 
+            transform: translateX(3px);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active { 
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(129, 140, 248, 0.1) 100%); 
+            color: var(--accent); 
+            border-color: var(--accent-border); 
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.12);
+        }
 
         .sidebar-signout { padding: 18px 20px; border-top: 1px solid var(--border); margin-top: auto; }
+
         .signout-sidebar-btn {
             display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 11px 14px; border-radius: var(--radius-md);
             font-size: 13px; font-weight: 700; color: var(--red); background: var(--red-soft); border: 1px solid var(--red-border); cursor: pointer; font-family: var(--mono); letter-spacing: 0.5px;
@@ -144,12 +202,24 @@
         }
         .signout-sidebar-btn:hover { background: rgba(244, 63, 94, 0.2); border-color: rgba(244, 63, 94, 0.5); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.2); }
 
-        /* MAIN */
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
         .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-        .topbar {
-            background: rgba(10, 15, 29, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border); padding: 0 36px; height: 68px; display: flex; align-items: center;
-            justify-content: space-between; position: sticky; top: 0; z-index: 40;
+        
+        .topbar { 
+            background: rgba(10, 15, 29, 0.6); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); 
+            padding: 0 36px; 
+            height: 68px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            position: sticky; 
+            top: 0; 
+            z-index: 40; 
         }
         .page-title { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 10px; }
 
@@ -157,12 +227,20 @@
         .page-view { display: none; }
         .page-view.active { display: block; }
 
-        /* STAT CARDS */
+        /* ============================================
+           DASHBOARD STAT CARDS
+           ============================================ */
         .stats-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 28px; }
-        .stat-card {
-            background: var(--bg-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; position: relative;
-            overflow: hidden; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        .stat-card { 
+            background: var(--bg-card); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            padding: 24px; 
+            position: relative; 
+            overflow: hidden; 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             transition: transform 0.25s ease, border-color 0.25s ease;
         }
         .stat-card:hover { transform: translateY(-3px); border-color: var(--border-strong); }
@@ -171,7 +249,7 @@
         .stat-card.avail::after { background: linear-gradient(90deg, var(--green), #34d399); }
         .stat-card.occup::after { background: linear-gradient(90deg, var(--red), #fb7185); }
         .stat-card.today::after { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
-
+        
         .stat-label { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
         .stat-number { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
         .stat-card.total .stat-number { color: var(--accent); text-shadow: 0 0 20px rgba(56, 189, 248, 0.3); }
@@ -179,7 +257,7 @@
         .stat-card.occup .stat-number { color: var(--red); text-shadow: 0 0 20px rgba(244, 63, 94, 0.3); }
         .stat-card.today .stat-number { color: var(--yellow); text-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
         .stat-desc { font-size: 12px; color: var(--text-secondary); margin-top: 8px; font-family: var(--mono); letter-spacing: 0.3px; }
-
+        
         .stat-bar-track { height: 5px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; margin-top: 18px; overflow: hidden; }
         .stat-bar-fill  { height: 100%; border-radius: 4px; transition: width 0.5s ease-out; }
         .stat-card.total .stat-bar-fill { background: linear-gradient(90deg, var(--accent), #818cf8); }
@@ -187,158 +265,76 @@
         .stat-card.occup .stat-bar-fill { background: linear-gradient(90deg, var(--red), #fb7185); }
         .stat-card.today .stat-bar-fill { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
 
-        /* SECTION CARDS */
-        .section-card {
-            background: var(--bg-card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px;
+        /* ============================================
+           SECTION CARDS & TABLES
+           ============================================ */
+        .section-card { 
+            background: var(--bg-card); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            overflow: hidden; 
+            margin-bottom: 24px; 
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
         }
         .section-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
         .section-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; display: flex; align-items: center; gap: 8px; }
         .section-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-
+        
         .search-wrapper { position: relative; display: flex; align-items: center; }
         .search-icon { position: absolute; left: 12px; color: var(--text-muted); pointer-events: none; }
         .search-input { font-size: 13px; font-family: var(--mono); color: var(--text-primary); background: var(--bg-deep); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 9px 16px 9px 36px; outline: none; width: 220px; transition: all 0.25s; }
         .search-input:focus { border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
-
+        
         .filter-group { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-deep); }
         .filter-btn { font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: transparent; border: none; border-right: 1px solid var(--border); padding: 5px 12px; cursor: pointer; transition: all 0.2s; }
         .filter-btn:last-child { border-right: none; }
         .filter-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
 
-        /* ═══════════════════════════════════════════════════════════
-           ✅ NEW: Sensor Warning Banner (above Slot Activity table)
-           ═══════════════════════════════════════════════════════════ */
-        .sensor-warning-banner {
-            display: none;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 17px;
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(244, 63, 94, 0.12) 100%);
-            border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-            border-left: 4px solid var(--yellow);
-            font-family: var(--mono);
-            font-size: 12px;
-            color: #fcd34d;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        .sensor-warning-banner.visible {
-            display: flex;
-        }
-        .sensor-warning-banner svg {
-            color: var(--yellow);
-            flex-shrink: 0;
-            animation: pulse-warn 2s infinite;
-        }
-        .sensor-warning-banner strong {
-            color: #fbbf24;
-            font-weight: 800;
-        }
-
-        /* TABLE */
         .slot-table { width: 100%; border-collapse: collapse; }
         .slot-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
-        .slot-table th {
-            font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;
-            letter-spacing: 1.5px; font-family: var(--mono); padding: var(--table-header-padding); text-align: center;
+        .slot-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            font-family: var(--mono); 
+            padding: var(--table-header-padding); 
+            text-align: center; 
         }
-        .slot-table td {
-            padding: 15px 18px; border-bottom: 1px solid var(--border-soft); text-align: center; font-size: 14px;
+        .slot-table td { 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            text-align: center; 
+            font-size: 14px;
         }
-        /* Balance the first (Wing) and last (Sensor) columns */
-.slot-table th:first-child,
-.slot-table td:first-child {
-    padding-left: 60px;    /* ← matches the visual whitespace on the right */
-}
-
-.slot-table th:last-child,
-.slot-table td:last-child {
-    padding-right: 60px;   /* ← keeps the sensor side balanced */
-}
         .slot-table tbody tr { transition: background 0.2s ease; }
         .slot-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
 
-        /* 🚨 Critical row — Occupied + Not Working */
-        .slot-table tbody tr.row-critical {
-            background: rgba(244, 63, 94, 0.08);
-            box-shadow: inset 3px 0 0 var(--red);
-            animation: pulse-critical 2s infinite;
-        }
-        @keyframes pulse-critical {
-            0%, 100% { background: rgba(244, 63, 94, 0.08); }
-            50%      { background: rgba(244, 63, 94, 0.16); }
-        }
-        .slot-table tbody tr.row-critical:hover {
-            background: rgba(244, 63, 94, 0.22);
-        }
-
         .wing-badge { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-secondary); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 4px 12px; border-radius: var(--radius-sm); letter-spacing: 1px; }
         .slot-pill { font-family: var(--mono); font-size: 14px; font-weight: 700; background: rgba(56, 189, 248, 0.08); border: 1px solid var(--accent-border); padding: 4px 12px; border-radius: var(--radius-sm); color: var(--accent); }
-
+        
         .status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; font-family: var(--mono); padding: 6px 14px; border-radius: 999px; }
         .status-dot { width: 7px; height: 7px; border-radius: 50%; }
         .status-badge.available { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
         .status-badge.available .status-dot { background: var(--green); box-shadow: 0 0 8px var(--green); }
         .status-badge.occupied  { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-border); }
         .status-badge.occupied  .status-dot { background: var(--red); box-shadow: 0 0 8px var(--red); animation: pulse-dot 1.4s infinite; }
-
+        
         @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:0.3} }
-        @keyframes pulse-warn { 0%,100%{opacity:1}50%{opacity:0.55} }
-
         .time-val { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text-primary); }
         .time-val.empty { color: var(--text-muted); font-style: italic; }
 
-        /* Stale tag next to "Occupied" */
-        .stale-tag {
-            display: inline-flex;
-            align-items: center;
-            font-family: var(--mono);
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--yellow);
-            background: var(--yellow-soft);
-            border: 1px solid var(--yellow-border);
-            border-radius: var(--radius-sm);
-            padding: 3px 7px;
-            margin-left: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        /* ═══════════════════════════════════════════════════════════
-           ✅ NEW: Sensor badge in its own column
-           ═══════════════════════════════════════════════════════════ */
-        .sensor-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            font-family: var(--mono);
-            padding: 5px 12px;
-            border-radius: 999px;
-            letter-spacing: 0.4px;
-        }
-        .sensor-badge.working {
-            background: var(--green-soft);
-            color: var(--green);
-            border: 1px solid var(--green-border);
-        }
-        .sensor-badge.not-working {
-            background: var(--yellow-soft);
-            color: var(--yellow);
-            border: 1px solid var(--yellow-border);
-            animation: pulse-warn 2s infinite;
-        }
-
-        /* Role badges */
+        /* Role Badges */
         .role-badge { display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); text-transform: uppercase; letter-spacing: 0.5px; }
         .role-badge.main-admin { background: var(--purple-soft); color: var(--purple); border: 1px solid var(--purple-border); }
         .role-badge.admin { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
 
-        /* HISTORY PAGE */
+        /* ============================================
+           HISTORY PAGE STYLES
+           ============================================ */
         .slot-filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
         .slot-filter-chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-md); background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all 0.2s; }
         .slot-filter-chip:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
@@ -357,15 +353,36 @@
         .history-summary-chip { font-family: var(--mono); font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: var(--radius-sm); background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); }
         .history-table { width: 100%; border-collapse: collapse; }
         .history-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
-        .history-table th { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-family: var(--mono); letter-spacing: 1px; padding: var(--table-header-padding); text-align: left; }
-        .history-table td { font-family: var(--mono); font-size: 13px; padding: var(--table-cell-padding); border-bottom: 1px solid var(--border-soft); color: var(--text-primary); }
+        .history-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            letter-spacing: 1px; 
+            padding: var(--table-header-padding); 
+            text-align: left; 
+        }
+        .history-table td { 
+            font-family: var(--mono); 
+            font-size: 13px; 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            color: var(--text-primary); 
+        }
         .empty-history { font-family: var(--mono); font-size: 13px; color: var(--text-secondary); text-align: center; padding: 40px; }
 
-        /* ACCOUNTS PAGE */
-        .account-hero {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
-            backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg);
-            padding: 32px 36px; margin-bottom: 24px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        /* ============================================
+           ACCOUNT PROFILE HERO & RBAC GROUPS
+           ============================================ */
+        .account-hero { 
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%); 
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-lg); 
+            padding: 32px 36px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
         .account-hero-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: #7ec8f0; background: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.25); border-radius: 999px; padding: 6px 16px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 1px; }
         .account-hero-name { font-size: 26px; font-weight: 800; color: #f8fafc; }
@@ -375,15 +392,30 @@
         .pending-card { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
         .pending-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
         .pending-badge { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); }
-
+        
+        /* New Container for Top-Stacked Audit Controls */
         .audit-controls-container { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
         .audit-controls-bottom { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
+        
         .pending-table { width: 100%; border-collapse: collapse; }
         .pending-table thead tr { background: var(--bg-deep); border-bottom: 1px solid var(--border); }
-        .pending-table th { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-family: var(--mono); letter-spacing: 1.5px; padding: var(--table-header-padding); text-align: left; }
-        .pending-table td { font-size: 13px; padding: var(--table-cell-padding); border-bottom: 1px solid var(--border-soft); color: var(--text-primary); }
-
+        .pending-table th { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: var(--text-secondary); 
+            text-transform: uppercase; 
+            font-family: var(--mono); 
+            letter-spacing: 1.5px; 
+            padding: var(--table-header-padding); 
+            text-align: left; 
+        }
+        .pending-table td { 
+            font-size: 13px; 
+            padding: var(--table-cell-padding); 
+            border-bottom: 1px solid var(--border-soft); 
+            color: var(--text-primary); 
+        }
+        
         .action-btn-group { display: flex; align-items: center; gap: 8px; width: 100%; }
         .approve-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; text-align: center; font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--green-soft); border: 1px solid var(--green-border); color: var(--green); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .approve-btn:hover { background: rgba(16, 185, 129, 0.25); transform: translateY(-1px); }
@@ -393,9 +425,9 @@
         .delete-btn:hover  { background: rgba(244, 63, 94, 0.25); transform: translateY(-1px); }
         .delete-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
-        .unlock-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); cursor: pointer; white-space: nowrap; transition: all 0.2s;
-        }
+        /* ✅ NEW: Unlock button styling */
+        .unlock-btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 8px 12px; border-radius: var(--radius-sm); background: var(--yellow-soft); border: 1px solid var(--yellow-border); color: var(--yellow); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
         .unlock-btn:hover { background: rgba(251, 191, 36, 0.25); transform: translateY(-1px); }
         .unlock-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
@@ -404,6 +436,7 @@
         .print-session-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-family: var(--mono); font-weight: 600; color: var(--purple); background: var(--purple-soft); border: 1px solid var(--purple-border); border-radius: var(--radius-sm); padding: 5px 10px; cursor: pointer; transition: all 0.2s; }
         .print-session-btn:hover { background: rgba(129, 140, 248, 0.25); transform: translateY(-1px); }
 
+        /* Compact Audit Table Styles */
         .audit-user-cell { display: flex; flex-direction: column; gap: 3px; }
         .audit-user-name { font-size: 14px; font-weight: 700; color: #ffffff; }
         .audit-user-meta { font-size: 12px; font-family: var(--mono); color: var(--accent); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -419,7 +452,9 @@
         .accessible-audit-table th { font-size: 11px !important; letter-spacing: 1px !important; color: var(--text-secondary) !important; padding: var(--table-header-padding) !important; }
         .accessible-audit-table td { padding: var(--table-cell-padding) !important; font-size: 13px !important; }
 
-        /* MODALS */
+        /* ============================================
+           MODALS
+           ============================================ */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .modal-overlay.visible { opacity: 1; pointer-events: all; }
         .modal { background: rgba(15, 23, 42, 0.95); border: 1px solid var(--border-strong); border-radius: 20px; padding: 36px 40px; max-width: 420px; width: 90%; text-align: center; position: relative; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5); }
@@ -433,36 +468,138 @@
         .modal-confirm-green { flex: 1; background: var(--green-soft); border: 1px solid var(--green-border); border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 700; color: var(--green); cursor: pointer; transition: all 0.2s; }
         .modal-confirm-green:hover { background: rgba(16, 185, 129, 0.25); }
 
-        /* PRINT */
-        @media print {
-            html, body { background: white !important; margin: 0 !important; padding: 0 !important; height: auto !important; width: 100% !important; min-height: auto !important; overflow: visible !important; }
-            body * { visibility: hidden !important; display: none !important; }
-            #print-area, #print-area * { visibility: visible !important; display: revert !important; }
-            #print-area {
-                position: relative !important; left: auto !important; top: 0 !important; width: 100% !important;
-                padding: 20px 25px !important; background: white !important; display: block !important; color: #000 !important;
-                margin: 0 !important; box-sizing: border-box !important; font-family: 'JetBrains Mono', monospace !important;
-                overflow: visible !important; max-height: none !important; height: auto !important; float: none !important; clear: both !important;
-                page-break-before: avoid !important; page-break-after: avoid !important;
-            }
-            .print-header { text-align: center !important; margin-bottom: 10px !important; padding-bottom: 8px !important; border-bottom: 2px solid #333 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
-            .print-header h1 { font-size: 20px !important; font-weight: 800 !important; color: #000 !important; margin-bottom: 2px !important; padding: 0 !important; }
-            .print-header p { font-size: 10px !important; color: #444 !important; font-family: 'JetBrains Mono', monospace !important; margin: 1px 0 !important; padding: 0 !important; }
-            #print-table { width: 100% !important; border-collapse: collapse !important; font-size: 10px !important; font-family: 'JetBrains Mono', monospace !important; page-break-inside: avoid !important; table-layout: auto !important; margin-top: 0 !important; }
-            #print-table th { background: #f0f0f0 !important; font-weight: bold !important; padding: 6px 8px !important; border: 1px solid #000 !important; text-align: left !important; font-size: 9px !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; }
-            #print-table td { padding: 5px 8px !important; border: 1px solid #ccc !important; color: #000 !important; text-align: left !important; font-size: 9px !important; }
-            #print-table tbody tr { page-break-inside: avoid !important; page-break-after: avoid !important; }
-            #print-table tbody tr:nth-child(even) { background: #f9f9f9 !important; }
-            @page { margin: 8mm 8mm !important; size: auto !important; }
-            .print-footer { display: none !important; }
-        }
+        /* ============================================
+           PRINT PREVIEW STYLES
+           ============================================ */
+@media print {
+    html, body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        width: 100% !important;
+        min-height: auto !important;
+        overflow: visible !important;
+    }
+    
+    body * { 
+        visibility: hidden !important; 
+        display: none !important;
+    }
+    
+    #print-area, 
+    #print-area * { 
+        visibility: visible !important; 
+        display: revert !important;
+    }
+    
+    #print-area {
+        position: relative !important;
+        left: auto !important;
+        top: 0 !important;
+        width: 100% !important;
+        padding: 20px 25px !important;
+        background: white !important;
+        display: block !important;
+        color: #000 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+        float: none !important;
+        clear: both !important;
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    .print-header {
+        text-align: center !important;
+        margin-bottom: 10px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 2px solid #333 !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+    }
+    
+    .print-header h1 { 
+        font-size: 20px !important; 
+        font-weight: 800 !important; 
+        color: #000 !important; 
+        margin-bottom: 2px !important; 
+        padding: 0 !important;
+    }
+    
+    .print-header p { 
+        font-size: 10px !important; 
+        color: #444 !important; 
+        font-family: 'JetBrains Mono', monospace !important; 
+        margin: 1px 0 !important; 
+        padding: 0 !important;
+    }
+    
+    #print-table { 
+        width: 100% !important; 
+        border-collapse: collapse !important; 
+        font-size: 10px !important; 
+        font-family: 'JetBrains Mono', monospace !important;
+        page-break-inside: avoid !important;
+        table-layout: auto !important;
+        margin-top: 0 !important;
+    }
+    
+    #print-table th { 
+        background: #f0f0f0 !important; 
+        font-weight: bold !important; 
+        padding: 6px 8px !important; 
+        border: 1px solid #000 !important; 
+        text-align: left !important; 
+        font-size: 9px !important; 
+        text-transform: uppercase !important; 
+        letter-spacing: 0.5px !important; 
+    }
+    
+    #print-table td { 
+        padding: 5px 8px !important; 
+        border: 1px solid #ccc !important; 
+        color: #000 !important; 
+        text-align: left !important; 
+        font-size: 9px !important; 
+    }
+    
+    #print-table tbody tr { 
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+    }
+    
+    #print-table tbody tr:nth-child(even) { 
+        background: #f9f9f9 !important; 
+    }
+    
+    @page { 
+        margin: 8mm 8mm !important;
+        size: auto !important;
+    }
+    
+    .print-footer {
+        display: none !important;
+    }
+}
 
-        #print-area { display: none; }
-        #print-area.visible-on-screen {
-            display: block !important; background: white !important; color: #000 !important; padding: 15px 20px !important;
-            font-family: 'JetBrains Mono', monospace !important; max-width: 100% !important; margin: 0 auto !important;
-            box-sizing: border-box !important; overflow: visible !important; height: auto !important;
-        }
+#print-area { display: none; }
+#print-area.visible-on-screen { 
+    display: block !important; 
+    background: white !important; 
+    color: #000 !important; 
+    padding: 15px 20px !important; 
+    font-family: 'JetBrains Mono', monospace !important; 
+    max-width: 100% !important; 
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
+    height: auto !important;
+}
     </style>
 </head>
 <body>
@@ -506,7 +643,7 @@
             </div>
         </aside>
 
-        <!-- MAIN CONTENT -->
+        <!-- MAIN CONTENT AREA -->
         <div class="main">
             <div class="topbar">
                 <div class="page-title" id="topbar-title">
@@ -556,7 +693,6 @@
                             <div class="stat-bar-track"><div class="stat-bar-fill" id="stat-today-bar"></div></div>
                         </div>
                     </div>
-
                     <div class="section-card">
                         <div class="section-header">
                             <div class="section-title">
@@ -572,49 +708,33 @@
                                     <button class="filter-btn active" data-filter="all">All</button>
                                     <button class="filter-btn" data-filter="occupied">Occupied</button>
                                     <button class="filter-btn" data-filter="available">Available</button>
-                                    <button class="filter-btn" data-filter="not-working">Not Working</button>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- ✅ NEW: Sensor Warning Banner -->
-                        <div class="sensor-warning-banner" id="sensor-warning-banner">
-                            <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-                            <span id="sensor-warning-text">Some sensors are not working</span>
-                        </div>
-
                         <table class="slot-table">
-                            <thead>
-                                <tr>
-                                    <th style="width:22%;">Wing</th>
-                                    <th style="width:12%;">Slot</th>
-                                    <th style="width:22%;">Status</th>
-                                    <th style="width:18%;">Time In</th>
-                                    <th style="width:26%;">Sensor</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th style="width:30%;">Wing</th><th style="width:14%;">Slot</th><th style="width:28%;">Status</th><th style="width:30%;">Time In</th></tr></thead>
                             <tbody id="slot-tbody">
-                                <tr data-slot="L1"><td><span class="wing-badge">LEFT</span></td><td><span class="slot-pill">L1</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M1"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M1</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M2"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M2</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M3"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M3</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M4"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M4</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M5"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M5</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M6"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M6</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="M7"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M7</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R1"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R1</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R2"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R2</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R3"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R3</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R4"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R4</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R5"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R5</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R6"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R6</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R7"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R7</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R8"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R8</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R9"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R9</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R10"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R10</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R11"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R11</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R12"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R12</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
-                                <tr data-slot="R13"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R13</span></td><td class="col-status"></td><td class="col-timein"></td><td class="col-sensor"></td></tr>
+                                <tr data-slot="L1"><td><span class="wing-badge">LEFT</span></td><td><span class="slot-pill">L1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M1"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M2"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M2</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M3"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M3</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M4"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M4</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M5"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M5</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M6"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M6</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="M7"><td><span class="wing-badge">MIDDLE</span></td><td><span class="slot-pill">M7</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R1"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R1</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R2"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R2</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R3"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R3</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R4"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R4</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R5"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R5</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R6"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R6</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R7"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R7</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R8"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R8</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R9"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R9</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R10"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R10</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R11"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R11</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R12"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R12</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
+                                <tr data-slot="R13"><td><span class="wing-badge">RIGHT</span></td><td><span class="slot-pill">R13</span></td><td class="col-status"></td><td class="col-timein"></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -674,6 +794,7 @@
                     </div>
 
                     <div id="superadmin-management-blocks" style="display: none;">
+                        <!-- ACTIVE ADMIN ACCOUNTS CARD -->
                         <div class="pending-card">
                             <div class="pending-header">
                                 <div>
@@ -701,6 +822,7 @@
                             </table>
                         </div>
 
+                        <!-- PENDING ADMIN APPLICATIONS CARD -->
                         <div class="pending-card" id="pending-card-container" style="display: none;">
                             <div class="pending-header">
                                 <div>
@@ -728,6 +850,7 @@
                             </table>
                         </div>
 
+                        <!-- ADMIN SIGN-IN HISTORY AUDITS CARD -->
                         <div class="pending-card">
                             <div class="pending-header">
                                 <div>
@@ -776,7 +899,7 @@
 
                             <div id="audit-pagination-container" style="display: none; text-align: center; padding: 12px; border-top: 1px solid var(--border-soft); background: var(--bg-deep);">
                                 <button id="view-more-audit-btn" onclick="loadMoreSessions()" style="font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: var(--radius-md); padding: 7px 18px; cursor: pointer; transition: all 0.2s;">
-                                    View More Logs
+                                    View More Logs 
                                 </button>
                             </div>
                         </div>
@@ -786,6 +909,7 @@
         </div>
     </div>
 
+    <!-- PRINT HIDDEN AREA -->
     <div id="print-area">
         <div class="print-header">
             <h1 id="print-title">iPark Report</h1>
@@ -799,6 +923,7 @@
     </div>
 
     <script>
+        /* ── Firebase Initialization ── */
         const firebaseConfig = {
             apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
             databaseURL: "https://ipark-ultrasonic-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -810,10 +935,10 @@
         const db   = firebase.database();
 
         const ALL_SLOTS = ['L1','M1','M2','M3','M4','M5','M6','M7','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13'];
-
+        
         let globalSlotsState = {};
         let globalHistoryState = {};
-        let currentSlot = null;
+        let currentSlot = null; 
         let isAllSlots = true;
         let activeDateKey = null;
         let activeSessionDateKey = null;
@@ -824,7 +949,6 @@
         let currentFilteredSessions = [];
         let currentSessionRefId = null;
         let currentActiveUid = null;
-        let sessionResolved = false;
 
         const SVG_ICONS = {
             dashboard: `<svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>`,
@@ -841,14 +965,14 @@
 
         function dateKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
         function todayKey() { return dateKey(new Date()); }
-        function formatTime(ts) {
+        function formatTime(ts) { 
             const t = parseTimestamp(ts);
-            return t ? `<span class="time-val">${new Date(t).toLocaleTimeString('en-PH')}</span>` : '<span class="time-val empty">—</span>';
+            return t ? `<span class="time-val">${new Date(t).toLocaleTimeString('en-PH')}</span>` : '<span class="time-val empty">—</span>'; 
         }
-
-        function durStr(tIn, tOut) {
+        
+        function durStr(tIn, tOut) { 
             const start = parseTimestamp(tIn);
-            if(!start) return '—';
+            if(!start) return '—'; 
             const end = parseTimestamp(tOut) || Date.now();
             let s = Math.floor((end - start)/1000);
             if (s < 0) {
@@ -856,12 +980,16 @@
                 s = Math.floor((now - start)/1000);
                 if (s < 0) return '0s';
             }
-            const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
-            return h>0?`${h}h ${m}m ${sec}s` : m>0?`${m}m ${sec}s` : `${sec}s`;
+            const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; 
+            return h>0?`${h}h ${m}m ${sec}s` : m>0?`${m}m ${sec}s` : `${sec}s`; 
         }
 
         /* ═══════════════════════════════════════════════════════════
-           Session management — idempotent, no duplicates
+           ✅ FIXED: Idempotent session management
+           - Reuses active session on refresh (no duplicates)
+           - Only creates a new session on real sign-in
+           - Removed beforeunload (was creating dupes on every refresh)
+           - Uses sessionStorage so closing the browser starts fresh
            ═══════════════════════════════════════════════════════════ */
         auth.onAuthStateChanged(user => {
             if (!user) { window.location.href = 'admin_signin.html'; return; }
@@ -879,6 +1007,7 @@
                     return;
                 }
 
+                // ✅ If this admin has been blocked while logged in, force them out
                 if (data.blocked === true) {
                     if (currentSessionRefId) {
                         db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
@@ -913,16 +1042,20 @@
                     document.getElementById('superadmin-management-blocks').style.display = 'none';
                 }
 
-                if (sessionResolved) return;
-                sessionResolved = true;
+                // ═══════════════════════════════════════════════════════
+                // ✅ Session management — idempotent, no duplicates on refresh
+                // ═══════════════════════════════════════════════════════
+                if (currentSessionRefId) {
+                    // Already resolved this page load — do nothing
+                    return;
+                }
 
-                const storedSessionId = sessionStorage.getItem('adminSessionId') || localStorage.getItem('adminSessionId');
+                const storedSessionId = sessionStorage.getItem('adminSessionId');
 
                 function createNewSession() {
                     const logRef = db.ref('adminSessions').push();
                     currentSessionRefId = logRef.key;
                     sessionStorage.setItem('adminSessionId', currentSessionRefId);
-                    localStorage.setItem('adminSessionId', currentSessionRefId);
                     logRef.set({
                         uid: user.uid, name: name, username: username, email: user.email,
                         loginTime: Date.now(), logoutTime: null, role: role, sessionId: logRef.key
@@ -930,11 +1063,14 @@
                 }
 
                 if (storedSessionId) {
+                    // Verify the stored session exists and is still active
                     db.ref('adminSessions/' + storedSessionId).once('value').then(sessionSnap => {
                         const session = sessionSnap.val();
                         if (session && !session.logoutTime && session.uid === user.uid) {
+                            // ✅ Reuse the active session — no new record
                             currentSessionRefId = storedSessionId;
                         } else {
+                            // Stored session is stale/closed → create fresh
                             createNewSession();
                         }
                     });
@@ -947,30 +1083,27 @@
         /* ── Real-Time Listeners ── */
         db.ref('/parkingSlots').on('value', snap => {
             const newSlotsState = snap.val() || {};
-
+            
             if (Object.keys(globalSlotsState).length > 0) {
                 ALL_SLOTS.forEach(slotId => {
                     const oldData = globalSlotsState[slotId];
                     const newData = newSlotsState[slotId];
 
-                    const oldStatus = (oldData && oldData.status) || '';
-                    const newStatus = (newData && newData.status) || '';
-
-                    // Don't log to history when transitioning FROM/TO "Not Working"
-                    if (oldStatus === 'Not Working' || newStatus === 'Not Working') {
-                        return;
-                    }
-
-                    const wasOccupied = oldData && (oldData.occupied === true || oldStatus === 'Occupied');
-                    const isNowAvailable = newData && (newData.occupied === false || newStatus === 'Available');
+                    const wasOccupied = oldData && (oldData.occupied === true || oldData.status === 'occupied');
+                    const isNowAvailable = newData && (newData.occupied === false || newData.status === 'available');
 
                     if (wasOccupied && isNowAvailable && oldData.timeIn) {
                         let timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
+                        
                         if (timeOutVal <= oldData.timeIn) {
                             timeOutVal = Date.now();
                         }
+                        
+                        const newRecord = {
+                            timeIn: oldData.timeIn,
+                            timeOut: timeOutVal
+                        };
 
-                        const newRecord = { timeIn: oldData.timeIn, timeOut: timeOutVal };
                         const newRef = db.ref(`/history/${slotId}`).push(newRecord);
 
                         if (!globalHistoryState) globalHistoryState = {};
@@ -1001,82 +1134,30 @@
             }
         });
 
-        /* ═══════════════════════════════════════════════════════════
-           ✅ UPDATED: renderDashboardUI with sensor detection + smart sort
-           Sort priority:
-             1. Not Working slots (regardless of occupied) — TOP
-             2. Occupied slots (newest timeIn first)
-             3. Available slots (original order)
-           ═══════════════════════════════════════════════════════════ */
+        /* ── Render Dashboard UI ── */
         function renderDashboardUI() {
-            let av = 0, oc = 0, notWorkingCount = 0;
+            let av = 0, oc = 0;
             const tbody = document.getElementById('slot-tbody');
             const rows = Array.from(tbody.querySelectorAll('tr'));
-
+            
             const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
-
-            const notWorkingRows = [];
+            
             const occupiedRows = [];
             const availableRows = [];
-
+            
             rows.forEach(row => {
-                const id = row.dataset.slot;
-                const sData = globalSlotsState[id] || {};
-                const status = sData.status || 'Available';
-                const notWorking = status === 'Not Working';
-                const occupied = !notWorking && (sData.occupied === true || status === 'Occupied');
+                const id = row.dataset.slot; 
+                const sData = globalSlotsState[id] || {}; 
+                const occupied = sData.occupied === true || sData.status === 'occupied';
                 const timeIn = sData.timeIn || 0;
 
-                // ── Row state for filtering ──
-                if (notWorking) {
-                    row.dataset.status = 'not-working';
-                } else {
-                    row.dataset.status = occupied ? 'occupied' : 'available';
-                }
+                row.dataset.status = occupied ? 'occupied' : 'available';
+                row.querySelector('.col-status').innerHTML = occupied ? 
+                    '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>' : 
+                    '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
+                row.querySelector('.col-timein').innerHTML = occupied ? formatTime(sData.timeIn) : '<span class="time-val empty">—</span>';
 
-                // ── Row class for critical highlight ──
-                if (notWorking && occupied) {
-                    row.classList.add('row-critical');
-                } else {
-                    row.classList.remove('row-critical');
-                }
-
-                // ── Status column ──
-                let statusHtml = '';
-                if (occupied) {
-                    statusHtml = '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>';
-                    if (notWorking) {
-                        statusHtml += ' <span class="stale-tag">stale</span>';
-                    }
-                } else {
-                    statusHtml = '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
-                }
-                row.querySelector('.col-status').innerHTML = statusHtml;
-
-                // ── Time In column ──
-                row.querySelector('.col-timein').innerHTML = occupied
-                    ? formatTime(sData.timeIn)
-                    : '<span class="time-val empty">—</span>';
-
-                // ── Sensor column ──
-                const sensorCell = row.querySelector('.col-sensor');
-                if (notWorking) {
-                    sensorCell.innerHTML = `<span class="sensor-badge not-working">
-                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-                        Not Working
-                    </span>`;
-                } else {
-                    sensorCell.innerHTML = `<span class="sensor-badge working">
-                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
-                        Working
-                    </span>`;
-                }
-
-                // ── Categorize for sorting ──
-                if (notWorking) {
-                    notWorkingCount++;
-                    notWorkingRows.push({ row, timeIn });
-                } else if (occupied) {
+                if(occupied) {
                     oc++;
                     occupiedRows.push({ row, timeIn });
                 } else {
@@ -1084,52 +1165,39 @@
                     availableRows.push(row);
                 }
             });
-
-            // Sort
-            notWorkingRows.sort((a, b) => b.timeIn - a.timeIn);
+            
             occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
+            
+            const sortedOccupiedRows = occupiedRows.map(item => item.row);
+            
             availableRows.sort((a, b) => {
                 const aIndex = originalOrder.indexOf(a.dataset.slot);
                 const bIndex = originalOrder.indexOf(b.dataset.slot);
                 return aIndex - bIndex;
             });
-
-            const sortedRows = [
-                ...notWorkingRows.map(x => x.row),
-                ...occupiedRows.map(x => x.row),
-                ...availableRows
-            ];
+            
+            const sortedRows = [...sortedOccupiedRows, ...availableRows];
+            
             sortedRows.forEach(row => tbody.appendChild(row));
 
-            // ── Stat cards ──
-            document.getElementById('stat-available').textContent = av;
+            document.getElementById('stat-available').textContent = av; 
             document.getElementById('stat-occupied').textContent = oc;
-            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`;
+            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`; 
             document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
-            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`;
+            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`; 
             document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
-
-            // ── Sensor warning banner ──
-            const banner = document.getElementById('sensor-warning-banner');
-            const bannerText = document.getElementById('sensor-warning-text');
-            if (notWorkingCount > 0) {
-                banner.classList.add('visible');
-                bannerText.innerHTML = `<strong>${notWorkingCount} sensor${notWorkingCount > 1 ? 's' : ''} not working</strong> — some slots may be unverified. Please check the affected slots.`;
-            } else {
-                banner.classList.remove('visible');
-            }
         }
 
         function renderTodayStats() {
-            let count = 0;
+            let count = 0; 
             const tk = todayKey();
-            Object.values(globalHistoryState).forEach(slots => {
-                Object.values(slots || {}).forEach(r => {
+            Object.values(globalHistoryState).forEach(slots => { 
+                Object.values(slots || {}).forEach(r => { 
                     const tIn = parseTimestamp(r.timeIn);
-                    if(tIn && dateKey(new Date(tIn)) === tk) count++;
+                    if(tIn && dateKey(new Date(tIn)) === tk) count++; 
                 });
             });
-            document.getElementById('stat-today').textContent = count;
+            document.getElementById('stat-today').textContent = count; 
             document.getElementById('stat-today-date').textContent = new Date().toLocaleDateString('en-PH');
             document.getElementById('stat-today-bar').style.width = `${Math.min((count/21)*100, 100)}%`;
         }
@@ -1158,21 +1226,15 @@
             const targetSlots = isAllSlots ? ALL_SLOTS : [currentSlot];
             targetSlots.forEach(sId => {
                 const sData = globalSlotsState[sId];
-                if (sData) {
-                    const status = sData.status || '';
-                    if (status === 'Not Working') return;   // Skip broken sensors from live history
-
-                    const occupied = sData.occupied === true || status === 'Occupied';
-                    if (occupied && sData.timeIn) {
-                        const parsedTimeIn = parseTimestamp(sData.timeIn);
-                        const exists = combined.some(r => r._slot === sId && r.timeIn === parsedTimeIn);
-                        if (!exists) {
-                            combined.push({
-                                _slot: sId,
-                                timeIn: parsedTimeIn,
-                                timeOut: null
-                            });
-                        }
+                if (sData && (sData.occupied === true || sData.status === 'occupied') && sData.timeIn) {
+                    const parsedTimeIn = parseTimestamp(sData.timeIn);
+                    const exists = combined.some(r => r._slot === sId && r.timeIn === parsedTimeIn);
+                    if (!exists) {
+                        combined.push({
+                            _slot: sId,
+                            timeIn: parsedTimeIn,
+                            timeOut: null
+                        });
                     }
                 }
             });
@@ -1192,20 +1254,20 @@
             document.getElementById('active-filter-tag').textContent = activeDateKey;
             document.getElementById('history-count-chip').textContent = `${filtered.length} records`;
 
-            document.getElementById('history-thead').innerHTML = isAllSlots
-                ? '<tr><th style="width:8%;">#</th><th style="width:15%;">Slot</th><th style="width:20%;">Date</th><th style="width:20%;">Time In</th><th style="width:20%;">Time Out</th><th style="width:17%;">Duration</th></tr>'
+            document.getElementById('history-thead').innerHTML = isAllSlots 
+                ? '<tr><th style="width:8%;">#</th><th style="width:15%;">Slot</th><th style="width:20%;">Date</th><th style="width:20%;">Time In</th><th style="width:20%;">Time Out</th><th style="width:17%;">Duration</th></tr>' 
                 : '<tr><th style="width:10%;">#</th><th style="width:25%;">Date</th><th style="width:25%;">Time In</th><th style="width:25%;">Time Out</th><th style="width:15%;">Duration</th></tr>';
 
             const tbody = document.getElementById('history-table-body');
-            if (!filtered.length) {
-                tbody.innerHTML = `<tr><td colspan="${isAllSlots ? 6 : 5}" class="empty-history">No history logs found.</td></tr>`;
-                return;
+            if (!filtered.length) { 
+                tbody.innerHTML = `<tr><td colspan="${isAllSlots ? 6 : 5}" class="empty-history">No history logs found.</td></tr>`; 
+                return; 
             }
 
             tbody.innerHTML = filtered.map((r, i) => {
                 const d = new Date(r.timeIn);
                 const isOccupied = !r.timeOut;
-
+                
                 return `<tr>
                     <td>${i + 1}</td>
                     ${isAllSlots ? `<td><span class="slot-pill">${r._slot}</span></td>` : ''}
@@ -1236,28 +1298,28 @@
         /* ── Slot Chip Filters ── */
         const cc = document.getElementById('slot-chips');
         cc.innerHTML = '';
-        const ac = document.createElement('button');
-        ac.className = 'slot-filter-chip allslots active';
+        const ac = document.createElement('button'); 
+        ac.className = 'slot-filter-chip allslots active'; 
         ac.textContent = 'All Slots';
-        ac.onclick = () => {
-            document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active'));
-            ac.classList.add('active');
-            currentSlot = null; isAllSlots = true;
+        ac.onclick = () => { 
+            document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
+            ac.classList.add('active'); 
+            currentSlot = null; isAllSlots = true; 
             document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} All Slots`;
-            processCombinedHistory();
+            processCombinedHistory(); 
         };
         cc.appendChild(ac);
 
         ALL_SLOTS.forEach(s => {
-            const c = document.createElement('button');
-            c.className = 'slot-filter-chip';
+            const c = document.createElement('button'); 
+            c.className = 'slot-filter-chip'; 
             c.textContent = s;
-            c.onclick = () => {
-                document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active'));
-                c.classList.add('active');
-                currentSlot = s; isAllSlots = false;
+            c.onclick = () => { 
+                document.querySelectorAll('.slot-filter-chip').forEach(x => x.classList.remove('active')); 
+                c.classList.add('active'); 
+                currentSlot = s; isAllSlots = false; 
                 document.getElementById('history-section-slot-label').innerHTML = `${SVG_ICONS.history} Slot ${s}`;
-                processCombinedHistory();
+                processCombinedHistory(); 
             };
             cc.appendChild(c);
         });
@@ -1271,13 +1333,13 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById('page-' + page).classList.add('active');
             document.getElementById('nav-'  + page).classList.add('active');
-
+            
             const pageData = {
                 dashboard: { title: 'Parking Overview', icon: SVG_ICONS.dashboard },
                 history: { title: 'Slot History Logs', icon: SVG_ICONS.history },
                 accounts: { title: 'Account Profile & Settings', icon: SVG_ICONS.accounts }
             };
-
+            
             document.getElementById('topbar-title').innerHTML = `${pageData[page].icon} ${pageData[page].title}`;
         }
 
@@ -1285,15 +1347,9 @@
             const q = this.value.toLowerCase();
             document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = r.dataset.slot.toLowerCase().includes(q) ? '' : 'none');
         });
-
-        // ✅ Filter buttons including "Not Working"
         document.querySelectorAll('.filter-btn:not(.session-role-btn)').forEach(b => b.addEventListener('click', function() {
-            document.querySelectorAll('.filter-btn:not(.session-role-btn)').forEach(x=>x.classList.remove('active'));
-            this.classList.add('active');
-            const f = this.dataset.filter;
-            document.querySelectorAll('#slot-tbody tr').forEach(r => {
-                r.style.display = (f === 'all' || r.dataset.status === f) ? '' : 'none';
-            });
+            document.querySelectorAll('.filter-btn:not(.session-role-btn)').forEach(x=>x.classList.remove('active')); this.classList.add('active');
+            const f = this.dataset.filter; document.querySelectorAll('#slot-tbody tr').forEach(r => r.style.display = (f==='all' || r.dataset.status===f)?'':'none');
         }));
 
         document.querySelectorAll('.session-role-btn').forEach(b => b.addEventListener('click', function() {
@@ -1386,7 +1442,7 @@
             });
         });
 
-        /* ── Delete Modal ── */
+        /* ── Delete Modal Handlers ── */
         let deleteAdminUid = null;
         function confirmDeleteAdmin(uid, name) {
             if (uid === currentActiveUid) {
@@ -1401,7 +1457,7 @@
         document.getElementById('delete-admin-cancel').onclick = () => document.getElementById('modal-delete-admin').classList.remove('visible');
         document.getElementById('delete-admin-confirm').onclick = () => {
             if (!deleteAdminUid) return;
-
+            
             const updates = {};
             updates['/adminUsers/' + deleteAdminUid] = null;
             updates['/pendingAdmins/' + deleteAdminUid] = null;
@@ -1422,15 +1478,15 @@
             });
         };
 
-        /* ── Sessions ── */
-        let sessionsPageSize = 5;
+        /* ── Admin Sessions Pagination & Search ── */
+        let sessionsPageSize = 5; 
 
         function loadAdminSessions() {
             db.ref('/adminSessions').on('value', snap => {
                 const list = Object.values(snap.val() || {})
                     .filter(s => s.username && s.username.trim() !== '' && s.username !== 'N/A')
                     .sort((a,b) => (b.loginTime || 0) - (a.loginTime || 0));
-
+                
                 rawSessionsList = list;
                 renderAdminSessionsTable();
             });
@@ -1465,7 +1521,7 @@
                 const loginDt = s.loginTime ? new Date(s.loginTime) : null;
                 const logoutDt = s.logoutTime ? new Date(s.logoutTime) : null;
 
-                const loginFormatted = loginDt
+                const loginFormatted = loginDt 
                     ? `<div class="audit-time-cell">
                         <span>${loginDt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         <span class="audit-time-divider">•</span>
@@ -1473,7 +1529,7 @@
                        </div>`
                     : '<span class="time-val empty" style="font-size:12px;">—</span>';
 
-                const logoutFormatted = logoutDt
+                const logoutFormatted = logoutDt 
                     ? `<div class="audit-time-cell">
                         <span>${logoutDt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         <span class="audit-time-divider">•</span>
@@ -1481,14 +1537,14 @@
                        </div>`
                     : '<span class="time-val empty" style="font-size:12px; color:var(--accent);">Active Session</span>';
 
-                const statusBadge = !s.logoutTime
+                const statusBadge = !s.logoutTime 
                     ? '<span class="audit-badge active"><span class="status-dot"></span>Active</span>'
                     : '<span class="audit-badge signed-out">Signed Out</span>';
 
                 let roleBadge = '';
                 if (activeSessionRoleFilter === 'all') {
-                    roleBadge = s.role === 'main_admin'
-                        ? '<span class="role-badge main-admin" style="font-size:9px; padding:2px 6px;">Main Admin</span>'
+                    roleBadge = s.role === 'main_admin' 
+                        ? '<span class="role-badge main-admin" style="font-size:9px; padding:2px 6px;">Main Admin</span>' 
                         : '<span class="role-badge admin" style="font-size:9px; padding:2px 6px;">Admin</span>';
                 }
 
@@ -1517,9 +1573,23 @@
             }
         }
 
-        function loadMoreSessions() { sessionsPageSize += 5; renderAdminSessionsTable(); }
-        function applySessionDateSearch() { activeSessionDateKey = document.getElementById('session-date-search').value || null; sessionsPageSize = 5; renderAdminSessionsTable(); }
-        function clearSessionDateFilter() { activeSessionDateKey = null; document.getElementById('session-date-search').value = ''; sessionsPageSize = 5; renderAdminSessionsTable(); }
+        function loadMoreSessions() {
+            sessionsPageSize += 5;
+            renderAdminSessionsTable();
+        }
+
+        function applySessionDateSearch() {
+            activeSessionDateKey = document.getElementById('session-date-search').value || null;
+            sessionsPageSize = 5;
+            renderAdminSessionsTable();
+        }
+
+        function clearSessionDateFilter() {
+            activeSessionDateKey = null;
+            document.getElementById('session-date-search').value = '';
+            sessionsPageSize = 5;
+            renderAdminSessionsTable();
+        }
 
         /* ── Pending Applications ── */
         function loadPendingAdmins() {
@@ -1574,8 +1644,8 @@
         document.getElementById('reject-cancel').onclick = () => document.getElementById('modal-reject').classList.remove('visible');
         document.getElementById('approve-confirm').onclick = () => {
             if(!pendingUid) return;
-            const up = {};
-            up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true, blocked: false, failedAttempts: 0 };
+            const up = {}; 
+            up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true, blocked: false, failedAttempts: 0 }; 
             up['/pendingAdmins/'+pendingUid] = null;
             db.ref().update(up); document.getElementById('modal-approve').classList.remove('visible');
         };
@@ -1584,30 +1654,30 @@
             db.ref('/pendingAdmins/'+rejectUid).remove(); document.getElementById('modal-reject').classList.remove('visible');
         };
 
-        /* ── Sign Out ── */
+        /* ── Sign Out Logic ── */
         document.getElementById('signout-sidebar-btn').onclick = () => document.getElementById('modal-signout').classList.add('visible');
         document.getElementById('signout-cancel').onclick = () => document.getElementById('modal-signout').classList.remove('visible');
         document.getElementById('signout-confirm').onclick = () => {
             if (currentSessionRefId) db.ref('adminSessions/' + currentSessionRefId).update({ logoutTime: Date.now() });
-            auth.signOut().then(() => {
-                localStorage.clear();
-                sessionStorage.clear();
-                window.location.href = 'admin_signin.html';
+            auth.signOut().then(() => { 
+                localStorage.clear(); 
+                sessionStorage.clear(); 
+                window.location.href = 'admin_signin.html'; 
             });
         };
 
-        /* ── Print ── */
+        /* ── Print Utilities ── */
         function printHistory() {
             if (!currentHistoryData.length) return alert('No history data to print.');
-
+            
             document.getElementById('print-title').textContent = 'iPark History Report';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
             document.getElementById('print-subtitle').textContent = activeDateKey ? `Filtered by Date: ${activeDateKey}` : 'All Historical Logs';
-
-            document.getElementById('print-thead').innerHTML = isAllSlots
-                ? '<tr><th>#</th><th>Slot</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>'
+            
+            document.getElementById('print-thead').innerHTML = isAllSlots 
+                ? '<tr><th>#</th><th>Slot</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>' 
                 : '<tr><th>#</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>';
-
+            
             document.getElementById('print-tbody').innerHTML = currentHistoryData.map((r, i) => {
                 const d = new Date(r.timeIn);
                 return `<tr>
@@ -1619,11 +1689,11 @@
                     <td>${durStr(r.timeIn, r.timeOut)}</td>
                 </tr>`;
             }).join('');
-
+            
             const p = document.getElementById('print-area');
             p.style.display = 'block';
             p.classList.add('visible-on-screen');
-
+            
             setTimeout(() => {
                 window.print();
                 setTimeout(() => {
@@ -1635,7 +1705,7 @@
 
         function printSessions() {
             if (!currentFilteredSessions.length) return alert('No session logs to print.');
-
+            
             const roleLabels = { all: 'All Sessions', admin: 'Admin Only', main_admin: 'Main Admin Only' };
             const roleStr = roleLabels[activeSessionRoleFilter] || 'All Sessions';
             const dateStr = activeSessionDateKey ? ` | Date: ${activeSessionDateKey}` : '';
@@ -1643,13 +1713,13 @@
             document.getElementById('print-title').textContent = 'iPark Admin Audit Report';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
             document.getElementById('print-subtitle').textContent = `Filtered by Role: ${roleStr}${dateStr}`;
-
+            
             document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
-
+            
             document.getElementById('print-tbody').innerHTML = currentFilteredSessions.map((s, i) => {
                 const loginDt = s.loginTime ? new Date(s.loginTime) : null;
                 const logoutDt = s.logoutTime ? new Date(s.logoutTime) : null;
-
+                
                 return `<tr>
                     <td>${i+1}</td>
                     <td>${s.name || 'Unknown'}</td>
@@ -1661,11 +1731,11 @@
                     <td>${s.logoutTime ? 'Signed Out' : 'Active'}</td>
                 </tr>`;
             }).join('');
-
+            
             const p = document.getElementById('print-area');
             p.style.display = 'block';
             p.classList.add('visible-on-screen');
-
+            
             setTimeout(() => {
                 window.print();
                 setTimeout(() => {
