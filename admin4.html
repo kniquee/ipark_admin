@@ -206,7 +206,18 @@
         .filter-btn { font-size: 12px; font-family: var(--mono); font-weight: 600; color: var(--text-secondary); background: transparent; border: none; border-right: 1px solid var(--border); padding: 5px 12px; cursor: pointer; transition: all 0.2s; }
         .filter-btn:last-child { border-right: none; }
         .filter-btn.active { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
-
+        /* Badge counter on filter button */
+.filter-count-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: #1e1b4b;
+    background: #f59e0b;
+    border-radius: 999px;
+    padding: 1px 6px;
+    margin-left: 4px;
+}
         /* ═══════════════════════════════════════════════════════════
            ✅ NEW: Sensor Warning Banner (above Slot Activity table)
            ═══════════════════════════════════════════════════════════ */
@@ -572,7 +583,9 @@
                                     <button class="filter-btn active" data-filter="all">All</button>
                                     <button class="filter-btn" data-filter="occupied">Occupied</button>
                                     <button class="filter-btn" data-filter="available">Available</button>
-                                    <button class="filter-btn" data-filter="not-working">Not Working</button>
+                                    <button class="filter-btn" data-filter="not-working" id="filter-btn-not-working">
+                                        Not Working <span id="filter-not-working-count" class="filter-count-badge" style="display:none;">0</span>
+                                        </button>
                                 </div>
                             </div>
                         </div>
@@ -1009,116 +1022,119 @@
              3. Available slots (original order)
            ═══════════════════════════════════════════════════════════ */
         function renderDashboardUI() {
-            let av = 0, oc = 0, notWorkingCount = 0;
-            const tbody = document.getElementById('slot-tbody');
-            const rows = Array.from(tbody.querySelectorAll('tr'));
+    let av = 0, oc = 0, notWorkingCount = 0;
+    const tbody = document.getElementById('slot-tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
 
-            const originalOrder = ['L1', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7', 'R8', 'R9', 'R10', 'R11', 'R12', 'R13'];
+    const occupiedGroup = [];
+    const availableGroup = [];
 
-            const notWorkingRows = [];
-            const occupiedRows = [];
-            const availableRows = [];
+    rows.forEach(row => {
+        const id = row.dataset.slot;
+        const sData = globalSlotsState[id] || {};
 
-            rows.forEach(row => {
-                const id = row.dataset.slot;
-                const sData = globalSlotsState[id] || {};
-                const status = sData.status || 'Available';
-                const notWorking = status === 'Not Working';
-                const occupied = !notWorking && (sData.occupied === true || status === 'Occupied');
-                const timeIn = sData.timeIn || 0;
+        // 1. Check Sensor Health
+        const sensorStatus = sData.sensorStatus || '';
+        const notWorking = (sensorStatus === 'Not Working' || sensorStatus === 'not_working' || sData.status === 'Not Working' || sData.status === 'not_working');
 
-                // ── Row state for filtering ──
-                if (notWorking) {
-                    row.dataset.status = 'not-working';
-                } else {
-                    row.dataset.status = occupied ? 'occupied' : 'available';
-                }
+        // 2. Check Occupancy State
+        const occupied = (sData.occupied === true || sData.status === 'Occupied' || sData.status === 'occupied');
+        const timeIn = sData.timeIn || 0;
 
-                // ── Row class for critical highlight ──
-                if (notWorking && occupied) {
-                    row.classList.add('row-critical');
-                } else {
-                    row.classList.remove('row-critical');
-                }
-
-                // ── Status column ──
-                let statusHtml = '';
-                if (occupied) {
-                    statusHtml = '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>';
-                    if (notWorking) {
-                        statusHtml += ' <span class="stale-tag">stale</span>';
-                    }
-                } else {
-                    statusHtml = '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
-                }
-                row.querySelector('.col-status').innerHTML = statusHtml;
-
-                // ── Time In column ──
-                row.querySelector('.col-timein').innerHTML = occupied
-                    ? formatTime(sData.timeIn)
-                    : '<span class="time-val empty">—</span>';
-
-                // ── Sensor column ──
-                const sensorCell = row.querySelector('.col-sensor');
-                if (notWorking) {
-                    sensorCell.innerHTML = `<span class="sensor-badge not-working">
-                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
-                        Not Working
-                    </span>`;
-                } else {
-                    sensorCell.innerHTML = `<span class="sensor-badge working">
-                        <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
-                        Working
-                    </span>`;
-                }
-
-                // ── Categorize for sorting ──
-                if (notWorking) {
-                    notWorkingCount++;
-                    notWorkingRows.push({ row, timeIn });
-                } else if (occupied) {
-                    oc++;
-                    occupiedRows.push({ row, timeIn });
-                } else {
-                    av++;
-                    availableRows.push(row);
-                }
-            });
-
-            // Sort
-            notWorkingRows.sort((a, b) => b.timeIn - a.timeIn);
-            occupiedRows.sort((a, b) => b.timeIn - a.timeIn);
-            availableRows.sort((a, b) => {
-                const aIndex = originalOrder.indexOf(a.dataset.slot);
-                const bIndex = originalOrder.indexOf(b.dataset.slot);
-                return aIndex - bIndex;
-            });
-
-            const sortedRows = [
-                ...notWorkingRows.map(x => x.row),
-                ...occupiedRows.map(x => x.row),
-                ...availableRows
-            ];
-            sortedRows.forEach(row => tbody.appendChild(row));
-
-            // ── Stat cards ──
-            document.getElementById('stat-available').textContent = av;
-            document.getElementById('stat-occupied').textContent = oc;
-            document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`;
-            document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
-            document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`;
-            document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
-
-            // ── Sensor warning banner ──
-            const banner = document.getElementById('sensor-warning-banner');
-            const bannerText = document.getElementById('sensor-warning-text');
-            if (notWorkingCount > 0) {
-                banner.classList.add('visible');
-                bannerText.innerHTML = `<strong>${notWorkingCount} sensor${notWorkingCount > 1 ? 's' : ''} not working</strong> — some slots may be unverified. Please check the affected slots.`;
-            } else {
-                banner.classList.remove('visible');
-            }
+        // Row Dataset Filter Tag
+        if (notWorking) {
+            row.dataset.status = 'not-working';
+        } else {
+            row.dataset.status = occupied ? 'occupied' : 'available';
         }
+
+        // Apply Red Critical Row Highlight if Occupied + Broken Sensor
+        if (notWorking && occupied) {
+            row.classList.add('row-critical');
+        } else {
+            row.classList.remove('row-critical');
+        }
+
+        // Status Column
+        let statusHtml = '';
+        if (occupied) {
+            statusHtml = '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>';
+            if (notWorking) {
+                statusHtml += ' <span class="stale-tag">stale</span>';
+            }
+        } else {
+            statusHtml = '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
+        }
+        row.querySelector('.col-status').innerHTML = statusHtml;
+
+        // Time In Column (Preserved when occupied)
+        row.querySelector('.col-timein').innerHTML = occupied
+            ? formatTime(sData.timeIn)
+            : '<span class="time-val empty">—</span>';
+
+        // Sensor Column
+        const sensorCell = row.querySelector('.col-sensor');
+        if (notWorking) {
+            sensorCell.innerHTML = `<span class="sensor-badge not-working">
+                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+                Not Working
+            </span>`;
+        } else {
+            sensorCell.innerHTML = `<span class="sensor-badge working">
+                <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="20 6 9 17 4 12"/></svg>
+                Working
+            </span>`;
+        }
+
+        // Increment Stat Counters
+        if (notWorking) {
+            notWorkingCount++;
+        }
+        if (occupied) {
+            oc++;
+            // Occupied slots (Working or Not Working) go to top group
+            occupiedGroup.push({ row, timeIn });
+        } else {
+            av++;
+            // Available slots (Working or Not Working) go to bottom group
+            availableGroup.push(row);
+        }
+    });
+
+    // 1. Sort Occupied group by timeIn (newest arrivals at the top)
+    occupiedGroup.sort((a, b) => b.timeIn - a.timeIn);
+
+    // 2. Sort Available group by original physical slot order
+    availableGroup.sort((a, b) => {
+        return originalOrder.indexOf(a.dataset.slot) - originalOrder.indexOf(b.dataset.slot);
+    });
+
+    // Append Occupied on top, Available below
+    occupiedGroup.forEach(x => tbody.appendChild(x.row));
+    availableGroup.forEach(row => tbody.appendChild(row));
+
+    // Update Stat Cards
+    document.getElementById('stat-available').textContent = av;
+    document.getElementById('stat-occupied').textContent = oc;
+    document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`;
+    document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
+    document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`;
+    document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
+
+    
+
+    // Dynamic Filter Button Counter Badge
+    const filterBadge = document.getElementById('filter-not-working-count');
+    if (filterBadge) {
+        if (notWorkingCount > 0) {
+            filterBadge.textContent = notWorkingCount;
+            filterBadge.style.display = 'inline-block';
+        } else {
+            filterBadge.style.display = 'none';
+        }
+    }
+}
 
         function renderTodayStats() {
             let count = 0;
