@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"name": "iPark_mobile",
+			"path": "../iPark_mobile"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "ipark_admin"
+	}
+}

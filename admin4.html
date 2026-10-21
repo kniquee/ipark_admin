@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         /* ============================================
            GLOBAL RESET & MODERN GRADIENT THEME
@@ -474,6 +475,139 @@
             font-family: 'JetBrains Mono', monospace !important; max-width: 100% !important; margin: 0 auto !important;
             box-sizing: border-box !important; overflow: visible !important; height: auto !important;
         }
+
+/* Visual refinements: typography families unchanged */
+.history-section-card { margin-top: 12px; margin-bottom: 22px; }
+.history-table th { padding: 17px 20px; background: rgba(20,34,54,.9); }
+.history-table td { padding: 17px 20px; line-height: 1.65; vertical-align: middle; }
+.history-table tbody tr:last-child td { padding-bottom: 22px; }
+.history-table tbody tr:hover { background: rgba(56,189,248,.055); }
+.account-hero { padding: 30px 36px; }
+.account-hero-meta { gap: 22px 36px; margin-top: 19px; }
+.account-hero-meta-item { min-width: 0; overflow-wrap: anywhere; line-height: 1.65; }
+.regular-admin-identity { margin: 0 20px 12px; padding: 13px 12px; border: 1px solid rgba(148,163,184,.28); border-radius: 12px; background: rgba(30,41,59,.8); display: flex; align-items: center; gap: 11px; cursor: default; }
+.identity-avatar { width: 36px; height: 36px; display: grid; place-items: center; flex-shrink: 0; border-radius: 50%; background: #164e63; color: #a5f3fc; font-size: 19px; }
+.identity-copy { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.identity-copy strong { font-size: 13px; color: #f8fafc; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.identity-copy small { font: 11px var(--mono); color: #cbd5e1; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-signout { margin-top: 0; }
+/* Contrast improvements without changing button behavior */
+.approve-btn, .modal-confirm-green { background: #047857; color: white; border-color: #34d399; }
+.reject-btn, .delete-btn, .modal-confirm-red { background: #be123c; color: white; border-color: #fb7185; }
+.unlock-btn { background: #92400e; color: #fff; border-color: #fbbf24; }
+.action-btn-group { flex-wrap: nowrap; gap: 8px; }
+.action-btn-group > button { white-space: nowrap; }
+@media (max-width: 780px) { .history-section-card { overflow-x: auto; } .history-table { min-width: 690px; } .account-hero { padding: 24px; } }
+@media print {
+  @page { size: A4 portrait; margin: 12.7mm; }
+  html, body { background: #fff !important; }
+  #print-area { padding: 0 !important; width: 100% !important; font-family: var(--sans) !important; }
+  .print-header { text-align: center !important; border-bottom: 0 !important; padding: 0 0 17px !important; margin: 0 0 16px !important; }
+  .print-header .report-logo { display: block !important; visibility: visible !important; height: 65px !important; width: auto !important; max-width: 175px !important; object-fit: contain !important; margin: 0 auto 5px !important; filter: none !important; }
+  .report-brand-subtitle { display: block !important; visibility: visible !important; font-family: var(--sans) !important; font-weight: 800 !important; font-size: 10px !important; letter-spacing: 2.3px !important; color: #334155 !important; text-align: center !important; margin-bottom: 12px !important; }
+  .report-divider { display: block !important; visibility: visible !important; height: 2px !important; width: 100% !important; background: #0f4464 !important; margin-bottom: 14px !important; }
+  .print-header h1 { font-family: var(--sans) !important; font-size: 18px !important; color: #0f172a !important; margin-bottom: 8px !important; }
+  .print-header p { font-size: 10px !important; line-height: 1.65 !important; color: #475569 !important; }
+  #print-table { width: 100% !important; table-layout: fixed !important; page-break-inside: auto !important; font-family: var(--sans) !important; }
+  #print-table thead { display: table-header-group !important; }
+  #print-table tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+  #print-table th { padding: 10px 7px !important; font-family: var(--sans) !important; background: #e8f1f7 !important; color: #16324f !important; border: 1px solid #bacbd7 !important; font-size: 8px !important; text-align: left !important; overflow-wrap: anywhere !important; }
+  #print-table td { padding: 9px 7px !important; font-family: var(--sans) !important; border: 1px solid #d8e1e8 !important; font-size: 8px !important; color: #172333 !important; vertical-align: top !important; overflow-wrap: anywhere !important; }
+  #print-table tbody tr:nth-child(even) { background: #f6f9fb !important; }
+}
+
+
+/* Final layout-only refinements: no changes to Firebase or event handlers */
+.identity-avatar { background:#1e4055; color:#b9e5f7; }
+.identity-copy strong { font-size:12px; }
+.approve-btn, .modal-confirm-green { background:#166b53 !important; border-color:#288b71 !important; color:#f5fffb !important; }
+.reject-btn, .delete-btn, .modal-confirm-red { background:#92354a !important; border-color:#b85b70 !important; color:#fff7f8 !important; }
+.approve-btn:hover, .modal-confirm-green:hover { background:#1b8063 !important; }
+.reject-btn:hover, .delete-btn:hover, .modal-confirm-red:hover { background:#ac4058 !important; }
+.accessible-audit-table { width:100%; table-layout:fixed; }
+.accessible-audit-table th, .accessible-audit-table td { vertical-align:middle; padding:15px 16px; }
+.accessible-audit-table th:nth-child(1), .accessible-audit-table td:nth-child(1) { width:5%; }
+.accessible-audit-table th:nth-child(2), .accessible-audit-table td:nth-child(2) { width:28%; padding-right:30px; }
+.accessible-audit-table th:nth-child(3), .accessible-audit-table td:nth-child(3) { width:24%; padding-left:24px; }
+.accessible-audit-table th:nth-child(4), .accessible-audit-table td:nth-child(4) { width:25%; padding-left:24px; }
+.accessible-audit-table th:nth-child(5), .accessible-audit-table td:nth-child(5) { width:18%; text-align:center; }
+.accessible-audit-table td { overflow-wrap:anywhere; }
+/* Audit status badges, including Active and Signed Out */
+.accessible-audit-table td:last-child .status-badge,
+.accessible-audit-table td:last-child .role-badge { white-space:nowrap; }
+@media print {
+ @page { size:A4 portrait; margin:12.7mm; }
+ html, body { background:white !important; }
+ body * { visibility:hidden !important; }
+ #print-area, #print-area * { visibility:visible !important; }
+ #print-area { position:absolute !important; left:0 !important; top:0 !important; width:100% !important; margin:0 !important; padding:0 !important; background:white !important; color:#172333 !important; display:block !important; font-family:var(--sans) !important; }
+ .print-header { text-align:center !important; margin:0 0 9px !important; padding:0 0 8px !important; border-bottom:1.5px solid #285875 !important; }
+ .print-header .report-logo { display:block !important; height:42px !important; width:auto !important; max-width:135px !important; margin:0 auto 1px !important; object-fit:contain !important; }
+ .report-brand-subtitle { display:block !important; font-size:9px !important; line-height:1.2 !important; letter-spacing:1.2px !important; font-weight:800 !important; margin:0 0 4px !important; color:#254b65 !important; }
+ .report-divider { display:none !important; }
+ .print-header h1 { font-size:15px !important; line-height:1.25 !important; font-weight:800 !important; color:#142b3d !important; margin:0 0 3px !important; }
+ .print-header p { font-size:9px !important; line-height:1.35 !important; color:#45566b !important; margin:0 !important; padding:0 !important; }
+ #print-subtitle { font-weight:700 !important; font-size:10px !important; color:#123e5b !important; margin:3px 0 0 !important; }
+ #print-table { display:table !important; width:100% !important; table-layout:auto !important; border-collapse:collapse !important; margin:0 !important; font-family:var(--sans) !important; page-break-inside:auto !important; }
+ #print-table thead { display:table-header-group !important; }
+ #print-table tbody { display:table-row-group !important; }
+ #print-table tr { display:table-row !important; break-inside:avoid !important; }
+ #print-table th, #print-table td { display:table-cell !important; text-align:left !important; vertical-align:middle !important; white-space:normal !important; overflow-wrap:anywhere !important; }
+ #print-table th { padding:6px 7px !important; font-size:9px !important; line-height:1.25 !important; font-weight:800 !important; color:#183c55 !important; background:#e9f1f6 !important; border:1px solid #b8cbd8 !important; letter-spacing:.2px !important; }
+ #print-table td { padding:5px 7px !important; font-size:9px !important; line-height:1.35 !important; color:#1d2937 !important; border:1px solid #d5dfe7 !important; }
+ #print-table tbody tr:nth-child(even) { background:#f5f8fb !important; }
+ #print-table th:first-child, #print-table td:first-child { width:30px !important; text-align:center !important; }
+}
+
+
+/* FINAL VISUAL ADJUSTMENTS — NO FIREBASE OR ACCOUNT BEHAVIOR CHANGES */
+.accessible-audit-table { table-layout: fixed !important; }
+.accessible-audit-table th:nth-child(1), .accessible-audit-table td:nth-child(1) { width: 5% !important; }
+.accessible-audit-table th:nth-child(2), .accessible-audit-table td:nth-child(2) { width: 31% !important; padding-right: 26px !important; }
+.accessible-audit-table th:nth-child(3), .accessible-audit-table td:nth-child(3) { width: 25% !important; padding-left: 12px !important; }
+.accessible-audit-table th:nth-child(4), .accessible-audit-table td:nth-child(4) { width: 25% !important; padding-left: 12px !important; }
+.accessible-audit-table th:nth-child(5), .accessible-audit-table td:nth-child(5) { width: 14% !important; text-align: center !important; }
+.accessible-audit-table .audit-time-cell { gap: 5px; }
+.approve-btn, .modal-confirm-green { background: #195b4c !important; border-color: #327d6c !important; color: #e8fff6 !important; }
+.reject-btn, .delete-btn, .modal-confirm-red { background: #79374b !important; border-color: #a15a6e !important; color: #fff0f3 !important; }
+.approve-btn:hover, .modal-confirm-green:hover { background: #226d59 !important; }
+.reject-btn:hover, .delete-btn:hover, .modal-confirm-red:hover { background: #904158 !important; }
+.audit-badge.active { background: #103f35 !important; color: #81e9c3 !important; border: 1px solid #257b62 !important; }
+.audit-badge.active .status-dot { background: #35d399 !important; box-shadow: 0 0 0 3px rgba(52,211,153,.14), 0 0 9px rgba(52,211,153,.8) !important; animation: pulse-dot 1.4s infinite; }
+.audit-badge.signed-out { background: #283345 !important; color: #dce5ef !important; border: 1px solid #526278 !important; }
+.print-history-btn, .print-session-btn { color: #c5dcff !important; background: #21365a !important; border: 1px solid #496caa !important; font-weight: 700 !important; }
+.print-history-btn:hover, .print-session-btn:hover { background: #2c4775 !important; border-color: #7396d4 !important; }
+/* Visible export sheet: styled for direct, automatic PDF download. */
+.pdf-export-sheet { position: static !important; float: none !important; width: 696px !important; height: auto !important; overflow: visible !important; opacity: 1 !important; visibility: visible !important; padding: 8px 10px !important; margin: 0 !important; background: #fff !important; color: #1c2938 !important; font-family: var(--sans) !important; display: block !important; box-sizing: border-box !important; }
+.pdf-export-sheet .print-header { display:block !important; text-align: center !important; border-bottom: 2px solid #35617d !important; padding: 0 0 10px !important; margin: 0 0 12px !important; }
+.pdf-export-sheet .report-logo { display:block !important; width:auto !important; height:62px !important; max-width:210px !important; object-fit:contain !important; margin:0 auto 1px !important; }
+.pdf-export-sheet .report-brand-subtitle { display:block !important; font-size:10px !important; font-weight:800 !important; letter-spacing:1.5px !important; color:#315b75 !important; margin:0 0 5px !important; }
+.pdf-export-sheet .report-divider { display:none !important; }
+.pdf-export-sheet .print-header h1 { display:block !important; font-size:19px !important; line-height:1.25 !important; font-weight:800 !important; color:#173247 !important; margin:0 0 3px !important; }
+.pdf-export-sheet .print-header p { display:block !important; font-size:11px !important; line-height:1.35 !important; color:#526276 !important; margin:0 !important; }
+.pdf-export-sheet #print-subtitle, .pdf-export-sheet .print-header p:last-child { color:#204e6b !important; font-size:11px !important; font-weight:700 !important; margin-top:4px !important; }
+.pdf-export-sheet #print-table { display:table !important; width:100% !important; border-collapse:collapse !important; table-layout:fixed !important; margin:0 !important; font-family:var(--sans) !important; }
+.pdf-export-sheet #print-table thead { display:table-header-group !important; }
+.pdf-export-sheet #print-table tbody { display:table-row-group !important; }
+.pdf-export-sheet #print-table tr { display:table-row !important; break-inside:avoid !important; }
+.pdf-export-sheet #print-table th, .pdf-export-sheet #print-table td { display:table-cell !important; text-align:left !important; vertical-align:middle !important; overflow-wrap:anywhere !important; white-space:normal !important; }
+.pdf-export-sheet #print-table th { background:#e8f0f6 !important; border:1px solid #b9cbd9 !important; color:#183e56 !important; font-size:11px !important; font-weight:800 !important; padding:9px 9px !important; }
+.pdf-export-sheet #print-table td { border:1px solid #d4dfe7 !important; color:#243345 !important; font-size:11px !important; line-height:1.4 !important; padding:8px 9px !important; }
+.pdf-export-sheet #print-table tbody tr:nth-child(even) { background:#f5f8fb !important; }
+.pdf-export-sheet #print-table th:first-child, .pdf-export-sheet #print-table td:first-child { width:40px !important; text-align:center !important; }
+.pdf-export-sheet .pdf-table { display:table !important; width:100% !important; border-collapse:collapse !important; table-layout:fixed !important; margin:0 !important; font-family:var(--sans) !important; }
+.pdf-export-sheet .pdf-table thead { display:table-header-group !important; }
+.pdf-export-sheet .pdf-table tbody { display:table-row-group !important; }
+.pdf-export-sheet .pdf-table tr { display:table-row !important; break-inside:avoid !important; }
+.pdf-export-sheet .pdf-table th, .pdf-export-sheet .pdf-table td { display:table-cell !important; text-align:center !important; vertical-align:middle !important; overflow-wrap:anywhere !important; white-space:normal !important; }
+.pdf-export-sheet .pdf-table th { background:#e8f0f6 !important; border:1px solid #b9cbd9 !important; color:#183e56 !important; font-size:11px !important; font-weight:800 !important; padding:9px 9px !important; }
+.pdf-export-sheet .pdf-table td { border:1px solid #d4dfe7 !important; color:#243345 !important; font-size:11px !important; line-height:1.4 !important; padding:8px 9px !important; }
+.pdf-export-sheet .pdf-table tbody tr:nth-child(even) { background:#f5f8fb !important; }
+.pdf-export-sheet .pdf-table.pdf-audit th { font-size:9.5px !important; padding:8px 5px !important; }
+.pdf-export-sheet .pdf-table.pdf-audit td:nth-child(3), .pdf-export-sheet .pdf-table.pdf-audit td:nth-child(4) { word-break:break-all !important; overflow-wrap:break-word !important; white-space:normal !important; min-width:0 !important; max-width:0 !important; }
+.pdf-export-sheet .pdf-table.pdf-audit td { font-size:10px !important; padding:7px 5px !important; line-height:1.35 !important; }
+.pdf-export-sheet .pdf-table th:first-child, .pdf-export-sheet .pdf-table td:first-child { width:40px !important; text-align:center !important; }
+
     </style>
 </head>
 <body>
@@ -509,6 +643,10 @@
                     Account Profile
                 </a>
             </nav>
+            <div class="regular-admin-identity" id="regular-admin-identity" aria-label="Signed-in administrator" style="display:none">
+                <span class="identity-avatar" aria-hidden="true"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>
+                <span class="identity-copy"><strong id="regular-admin-firstname">Administrator</strong><small id="regular-admin-username">@admin</small></span>
+            </div>
             <div class="sidebar-signout">
                 <button class="signout-sidebar-btn" id="signout-sidebar-btn">
                     <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
@@ -647,7 +785,7 @@
                         </button>
                         <button class="print-history-btn" onclick="printHistory()">
                             <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                            Print History
+                            Export History
                         </button>
                         <span class="active-filter-tag" id="active-filter-tag" style="display:none"></span>
                     </div>
@@ -761,7 +899,7 @@
                                         </button>
                                         <button class="print-session-btn" onclick="printSessions()">
                                             <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                            Print Audits
+                                            Export Sessions
                                         </button>
                                     </div>
                                     <div class="filter-group">
@@ -801,6 +939,9 @@
 
     <div id="print-area">
         <div class="print-header">
+            <img src="logo.png" class="report-logo" alt="iPARK Logo">
+            <div class="report-brand-subtitle">SMART PARKING SYSTEM</div>
+            <div class="report-divider"></div>
             <h1 id="print-title">iPark Report</h1>
             <p>Generated: <span id="print-date"></span></p>
             <p id="print-subtitle" style="margin-top:4px; font-weight:600;"></p>
@@ -1618,7 +1759,7 @@
 
             document.getElementById('print-title').textContent = 'iPark History Report';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
-            document.getElementById('print-subtitle').textContent = activeDateKey ? `Filtered by Date: ${activeDateKey}` : 'All Historical Logs';
+            document.getElementById('print-subtitle').textContent = `${isAllSlots ? 'All Parking Slots' : 'Parking Slot ' + (currentSlot || 'Selected')}  •  ${activeDateKey ? 'Date: ' + activeDateKey : 'All Dates'}  •  ${currentHistoryData.length} Record(s)`;
 
             document.getElementById('print-thead').innerHTML = isAllSlots
                 ? '<tr><th>#</th><th>Slot</th><th>Date</th><th>Time In</th><th>Time Out</th><th>Duration</th></tr>'
@@ -1636,17 +1777,7 @@
                 </tr>`;
             }).join('');
 
-            const p = document.getElementById('print-area');
-            p.style.display = 'block';
-            p.classList.add('visible-on-screen');
-
-            setTimeout(() => {
-                window.print();
-                setTimeout(() => {
-                    p.style.display = 'none';
-                    p.classList.remove('visible-on-screen');
-                }, 500);
-            }, 300);
+            exportReportPDF('iPARK_History_' + (isAllSlots ? 'All_Slots' : (currentSlot || 'Slot')) + '.pdf');
         }
 
         function printSessions() {
@@ -1656,11 +1787,11 @@
             const roleStr = roleLabels[activeSessionRoleFilter] || 'All Sessions';
             const dateStr = activeSessionDateKey ? ` | Date: ${activeSessionDateKey}` : '';
 
-            document.getElementById('print-title').textContent = 'iPark Admin Audit Report';
+            document.getElementById('print-title').textContent = 'iPark Admin Sessions Report ';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
-            document.getElementById('print-subtitle').textContent = `Filtered by Role: ${roleStr}${dateStr}`;
+            document.getElementById('print-subtitle').textContent = `Admin Sessions: ${roleStr}${dateStr}  •  ${currentFilteredSessions.length} Record(s)`;
 
-            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Status</th></tr>';
+            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th></tr>';
 
             document.getElementById('print-tbody').innerHTML = currentFilteredSessions.map((s, i) => {
                 const loginDt = s.loginTime ? new Date(s.loginTime) : null;
@@ -1674,22 +1805,112 @@
                     <td>${s.role === 'main_admin' ? 'Main Admin' : 'Admin'}</td>
                     <td>${loginDt ? loginDt.toLocaleString('en-PH') : '—'}</td>
                     <td>${logoutDt ? logoutDt.toLocaleString('en-PH') : '—'}</td>
-                    <td>${s.logoutTime ? 'Signed Out' : 'Active'}</td>
                 </tr>`;
             }).join('');
 
-            const p = document.getElementById('print-area');
-            p.style.display = 'block';
-            p.classList.add('visible-on-screen');
+            exportReportPDF('iPARK_Admin_Sessions_' + activeSessionRoleFilter + '.pdf');
+        }
 
-            setTimeout(() => {
-                window.print();
-                setTimeout(() => {
-                    p.style.display = 'none';
-                    p.classList.remove('visible-on-screen');
-                }, 500);
-            }, 300);
+        /* PDF-only export: existing history and audit data preparation is unchanged. */
+        async function exportReportPDF(filename) {
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF export library could not load. Please connect to the internet and try again.');
+                return;
+            }
+            const source = document.getElementById('print-area');
+            const copy = source.cloneNode(true);
+            copy.removeAttribute('id');
+            copy.className = 'pdf-export-sheet';
+            // Cloned ids would clash with the originals, so strip them from descendants
+            // (the #print-table styles are re-applied via the class below).
+            copy.querySelectorAll('[id]').forEach(el => {
+                if (el.id === 'print-table') el.classList.add('pdf-table');
+                el.removeAttribute('id');
+            });
+            // Arrange columns to fit the portrait page (no Status column in the export).
+            const tbl = copy.querySelector('.pdf-table');
+            if (tbl) {
+                const heads = Array.from(tbl.querySelectorAll('thead th'));
+                const widthMap = {
+                    '#': 5, 'Slot': 10, 'Date': 20, 'Time In': 21, 'Time Out': 24, 'Duration': 20,
+                    'Name': 15, 'Username': 12, 'Email': 25, 'Role': 9, 'Login Time': 17, 'Logout Time': 17
+                };
+                const isAudit = heads.some(h => h.textContent.trim() === 'Email');
+                const cols = heads.filter(h => h.textContent.trim().toLowerCase() !== 'status');
+                heads.forEach((h, i) => {
+                    if (h.textContent.trim().toLowerCase() === 'status') {
+                        tbl.querySelectorAll('tr').forEach(r => { if (r.children[i]) r.children[i].remove(); });
+                    }
+                });
+                const total = cols.reduce((n, h) => n + (widthMap[h.textContent.trim()] || 10), 0);
+                const cg = document.createElement('colgroup');
+                cols.forEach(h => {
+                    const c = document.createElement('col');
+                    c.style.width = ((widthMap[h.textContent.trim()] || 10) / total * 100).toFixed(2) + '%';
+                    cg.appendChild(c);
+                });
+                tbl.insertBefore(cg, tbl.firstChild);
+                if (isAudit) tbl.classList.add('pdf-audit');
+            }
+            // Wrapper sits in normal flow, so html2pdf measures a real height.
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'position:absolute;left:0;top:0;width:696px;background:#fff;z-index:-1;';
+            wrap.appendChild(copy);
+            document.body.appendChild(wrap);
+            try {
+                if (document.fonts && document.fonts.ready) await document.fonts.ready;
+                const logo = copy.querySelector('.report-logo');
+                if (logo) {
+                    if (!logo.complete) {
+                        await new Promise(resolve => { logo.onload = resolve; logo.onerror = resolve; });
+                    }
+                    // If the logo is missing/broken, drop it so it can't blank or taint the PDF
+                    if (!logo.naturalWidth) logo.remove();
+                }
+                await html2pdf().set({
+                    margin: [12.7, 12.7, 12.7, 12.7], // Narrow margins (0.5 in)
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 0.97 },
+                    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
+                }).from(copy).save();
+            } catch (error) {
+                console.error('PDF export failed:', error);
+                alert('Could not export the PDF. Please try again.');
+            } finally {
+                wrap.remove();
+            }
         }
     </script>
+<script>
+/* Presentation only: mirror existing account labels into the regular-admin sidebar. */
+(function () {
+  const nameEl = document.getElementById('acct-name');
+  const usernameEl = document.getElementById('acct-hero-username');
+  const badgeEl = document.getElementById('role-display-badge');
+  const nav = document.getElementById('nav-accounts');
+  const identity = document.getElementById('regular-admin-identity');
+  if (!nameEl || !usernameEl || !badgeEl || !nav || !identity) return;
+  function syncIdentity() {
+    const role = badgeEl.textContent.trim();
+    if (role !== 'Administrator' && role !== 'Main Administrator') return;
+    const regular = role === 'Administrator';
+    identity.style.display = regular ? 'flex' : 'none';
+    nav.style.display = regular ? 'none' : '';
+    const label = nav.previousElementSibling;
+    if (label && label.classList.contains('nav-section-label')) label.style.display = regular ? 'none' : '';
+    if (regular) {
+      const full = nameEl.textContent.trim();
+      document.getElementById('regular-admin-firstname').textContent = full || 'Administrator';
+      document.getElementById('regular-admin-username').textContent = '@' + usernameEl.textContent.replace(/^Username:\s*/, '').trim();
+      if (document.getElementById('page-accounts').classList.contains('active')) showPage('dashboard');
+    }
+  }
+  new MutationObserver(syncIdentity).observe(badgeEl, {childList:true, subtree:true, characterData:true});
+  new MutationObserver(syncIdentity).observe(nameEl, {childList:true, subtree:true, characterData:true});
+  syncIdentity();
+})();
+</script>
 </body>
 </html>
