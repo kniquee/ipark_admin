@@ -431,6 +431,23 @@
         .accessible-audit-table th { font-size: 11px !important; letter-spacing: 1px !important; color: var(--text-secondary) !important; padding: var(--table-header-padding) !important; }
         .accessible-audit-table td { padding: var(--table-cell-padding) !important; font-size: 13px !important; }
 
+        /* Account status and consistent action colors. */
+        .account-status { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px; font: 600 12px var(--sans); white-space: nowrap; }
+        .account-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .account-status.active { color: #6ee7b7; background: #103b32; border: 1px solid #236653; }
+        .account-status.blocked { color: #fda4af; background: #431e2b; border: 1px solid #85364b; }
+        .action-btn-group { gap: 8px; flex-wrap: wrap; }
+        .action-btn-group > button { min-height: 36px; min-width: 82px; flex: 0 0 auto; padding: 8px 14px; border-radius: 8px; font: 700 12px var(--sans); cursor: pointer; transition: background .18s, border-color .18s; }
+        .block-btn { color: #fde68a; background: #493410; border: 1px solid #997022; }
+        .block-btn:hover { background: #634817; border-color: #d2a23e; }
+        .unlock-btn, .approve-btn { color: #d1fae5; background: #126047; border-color: #278463; }
+        .unlock-btn:hover, .approve-btn:hover { background: #197957; border-color: #45b68a; }
+        .delete-btn, .reject-btn { color: #ffe4e6; background: #881f38; border-color: #ba3b57; }
+        .delete-btn:hover, .reject-btn:hover { background: #a72b47; border-color: #e05a76; }
+        button:focus-visible { outline: 3px solid #7dd3fc; outline-offset: 3px; }
+        .action-btn-group > button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+        #superadmin-management-blocks > .pending-card:first-child { overflow-x: auto; }
+        #superadmin-management-blocks > .pending-card:first-child .pending-table { min-width: 880px; }
         /* MODALS */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .modal-overlay.visible { opacity: 1; pointer-events: all; }
@@ -543,11 +560,11 @@
  #print-area { position:absolute !important; left:0 !important; top:0 !important; width:100% !important; margin:0 !important; padding:0 !important; background:white !important; color:#172333 !important; display:block !important; font-family:var(--sans) !important; }
  .print-header { text-align:center !important; margin:0 0 9px !important; padding:0 0 8px !important; border-bottom:1.5px solid #285875 !important; }
  .print-header .report-logo { display:block !important; height:42px !important; width:auto !important; max-width:135px !important; margin:0 auto 1px !important; object-fit:contain !important; }
- .report-brand-subtitle { display:block !important; font-size:9px !important; line-height:1.2 !important; letter-spacing:1.2px !important; font-weight:800 !important; margin:0 0 4px !important; color:#254b65 !important; }
+ .report-brand-subtitle { display:block !important; font-size:10px !important; line-height:1.2 !important; letter-spacing:1.2px !important; font-weight:800 !important; margin:0 0 4px !important; color:#254b65 !important; }
  .report-divider { display:none !important; }
  .print-header h1 { font-size:15px !important; line-height:1.25 !important; font-weight:800 !important; color:#142b3d !important; margin:0 0 3px !important; }
- .print-header p { font-size:9px !important; line-height:1.35 !important; color:#45566b !important; margin:0 !important; padding:0 !important; }
- #print-subtitle { font-weight:700 !important; font-size:10px !important; color:#123e5b !important; margin:3px 0 0 !important; }
+ .print-header p { font-size:11px !important; line-height:1.35 !important; color:#45566b !important; margin:0 !important; padding:0 !important; }
+ #print-subtitle { font-weight:700 !important; font-size:12px !important; color:#123e5b !important; margin:3px 0 0 !important; }
  #print-table { display:table !important; width:100% !important; table-layout:auto !important; border-collapse:collapse !important; margin:0 !important; font-family:var(--sans) !important; page-break-inside:auto !important; }
  #print-table thead { display:table-header-group !important; }
  #print-table tbody { display:table-row-group !important; }
@@ -578,14 +595,14 @@
 .print-history-btn, .print-session-btn { color: #c5dcff !important; background: #21365a !important; border: 1px solid #496caa !important; font-weight: 700 !important; }
 .print-history-btn:hover, .print-session-btn:hover { background: #2c4775 !important; border-color: #7396d4 !important; }
 /* Visible export sheet: styled for direct, automatic PDF download. */
-.pdf-export-sheet { position: static !important; float: none !important; width: 696px !important; height: auto !important; overflow: visible !important; opacity: 1 !important; visibility: visible !important; padding: 8px 10px !important; margin: 0 !important; background: #fff !important; color: #1c2938 !important; font-family: var(--sans) !important; display: block !important; box-sizing: border-box !important; }
+.pdf-export-sheet { position: static !important; float: none !important; width: 696px !important; height: auto !important; overflow: visible !important; opacity: 1 !important; visibility: visible !important; padding: 0 10px 8px !important; margin: 0 !important; background: #fff !important; color: #1c2938 !important; font-family: var(--sans) !important; display: block !important; box-sizing: border-box !important; }
 .pdf-export-sheet .print-header { display:block !important; text-align: center !important; border-bottom: 2px solid #35617d !important; padding: 0 0 10px !important; margin: 0 0 12px !important; }
-.pdf-export-sheet .report-logo { display:block !important; width:auto !important; height:62px !important; max-width:210px !important; object-fit:contain !important; margin:0 auto 1px !important; }
+.pdf-export-sheet .report-logo { display:block !important; width:auto !important; height:88px !important; max-width:280px !important; object-fit:contain !important; margin:0 auto 1px !important; }
 .pdf-export-sheet .report-brand-subtitle { display:block !important; font-size:10px !important; font-weight:800 !important; letter-spacing:1.5px !important; color:#315b75 !important; margin:0 0 5px !important; }
 .pdf-export-sheet .report-divider { display:none !important; }
 .pdf-export-sheet .print-header h1 { display:block !important; font-size:19px !important; line-height:1.25 !important; font-weight:800 !important; color:#173247 !important; margin:0 0 3px !important; }
-.pdf-export-sheet .print-header p { display:block !important; font-size:11px !important; line-height:1.35 !important; color:#526276 !important; margin:0 !important; }
-.pdf-export-sheet #print-subtitle, .pdf-export-sheet .print-header p:last-child { color:#204e6b !important; font-size:11px !important; font-weight:700 !important; margin-top:4px !important; }
+.pdf-export-sheet .print-header p { display:block !important; font-size:12px !important; line-height:1.35 !important; color:#526276 !important; margin:0 !important; }
+.pdf-export-sheet #print-subtitle, .pdf-export-sheet .print-header p:last-child { color:#204e6b !important; font-size:13px !important; font-weight:700 !important; margin-top:4px !important; }
 .pdf-export-sheet #print-table { display:table !important; width:100% !important; border-collapse:collapse !important; table-layout:fixed !important; margin:0 !important; font-family:var(--sans) !important; }
 .pdf-export-sheet #print-table thead { display:table-header-group !important; }
 .pdf-export-sheet #print-table tbody { display:table-row-group !important; }
@@ -609,6 +626,143 @@
 .pdf-export-sheet .pdf-table th:first-child, .pdf-export-sheet .pdf-table td:first-child { width:40px !important; text-align:center !important; }
 
     </style>
+    <style id="consistent-control-colors">
+    @media screen {
+        /* Final palette shared by controls, confirmations and status labels. */
+        .block-btn, #block-confirm { background: #493410 !important; color: #fde68a !important; border: 1px solid #997022 !important; }
+        .block-btn:hover, #block-confirm:hover { background: #634817 !important; border-color: #d2a23e !important; }
+        .approve-btn, .unlock-btn, .modal-confirm-green { background: #126047 !important; color: #ecfdf5 !important; border-color: #339774 !important; }
+        .approve-btn:hover, .unlock-btn:hover, .modal-confirm-green:hover { background: #197957 !important; border-color: #59c99e !important; }
+        .delete-btn, .reject-btn, .modal-confirm-red:not(#block-confirm) { background: #881f38 !important; color: #fff1f2 !important; border-color: #c64b68 !important; }
+        .delete-btn:hover, .reject-btn:hover, .modal-confirm-red:not(#block-confirm):hover { background: #a72b47 !important; border-color: #ef8099 !important; }
+        .modal-cancel, .date-clear-btn { background: #243247; color: #e2e8f0; border-color: #526278; }
+        .modal-cancel:hover, .date-clear-btn:hover { background: #33455e; border-color: #94a3b8; color: #fff; }
+        .filter-btn { min-height: 34px; color: #cbd5e1; }
+        .filter-btn:hover { background: #243247; color: #f8fafc; }
+        .filter-btn.active, .slot-filter-chip.active { background: #143e56; color: #bae6fd; border-color: #3884a8; }
+        .status-badge.available, .sensor-badge.working, .audit-badge.active { background: #103b32 !important; color: #6ee7b7 !important; border-color: #28745c !important; }
+        .status-badge.occupied { background: #431e2b; color: #fda4af; border-color: #85364b; }
+        .sensor-badge.not-working, .stale-tag, .pending-badge { background: #493410; color: #fde68a; border-color: #997022; }
+        .audit-badge.signed-out { background: #253247 !important; color: #dce5ef !important; border-color: #526278 !important; }
+        .status-badge .status-dot { background: currentColor; box-shadow: none; }
+        .action-btn-group { flex-wrap: wrap; }
+        button:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        button:focus-visible { outline: 3px solid #7dd3fc; outline-offset: 3px; }
+    }
+    </style>
+    <style id="restrained-table-actions">
+    @media screen {
+        .action-btn-group { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; width: auto; }
+        .action-btn-group > button { flex: 0 0 auto; min-width: 0; min-height: 32px; padding: 6px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .approve-btn, .unlock-btn, .modal-confirm-green { background: #194b3c !important; color: #98edc6 !important; border-color: #479e7b !important; box-shadow: none !important; }
+        .approve-btn:hover, .unlock-btn:hover, .modal-confirm-green:hover { background: #263e35 !important; color: #d1e4da !important; border-color: #617e6f !important; transform: none; }
+        .delete-btn, .reject-btn, .modal-confirm-red:not(#block-confirm) { background: #51293a !important; color: #ffb1c2 !important; border-color: #b25c77 !important; box-shadow: none !important; }
+        .delete-btn:hover, .reject-btn:hover, .modal-confirm-red:not(#block-confirm):hover { background: #423039 !important; color: #ead0d6 !important; border-color: #84616e !important; transform: none; }
+        .block-btn, #block-confirm { background: #49391f !important; color: #f3d08c !important; border-color: #a88447 !important; box-shadow: none !important; }
+        .block-btn:hover, #block-confirm:hover { background: #40392d !important; color: #e4d8bc !important; border-color: #827255 !important; }
+        #active-admins-tbody td:last-child { width: 1%; white-space: nowrap; }
+        #active-admins-tbody .action-btn-group { justify-content: flex-start; }
+    }
+    </style>
+    <style id="export-button-polish">
+    @media screen {
+        .print-history-btn, .print-session-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 36px; padding: 8px 14px; border-radius: 8px;
+            font: 600 12px var(--sans); white-space: nowrap; cursor: pointer;
+            background: #203e58 !important; color: #c4e7ff !important;
+            border: 1px solid #4e83a8 !important; box-shadow: none !important;
+            transition: background .18s, border-color .18s, color .18s;
+        }
+        .print-history-btn:hover, .print-session-btn:hover {
+            background: #2a506e !important; border-color: #79b7df !important;
+            color: #eff9ff !important; transform: none;
+        }
+        .print-history-btn:active, .print-session-btn:active { background: #183347 !important; }
+        .print-history-btn svg, .print-session-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .approve-btn:hover, .unlock-btn:hover, .modal-confirm-green:hover { background: #235e49 !important; color: #c5f9df !important; border-color: #68bf98 !important; }
+        .delete-btn:hover, .reject-btn:hover, .modal-confirm-red:not(#block-confirm):hover { background: #663448 !important; color: #ffdae3 !important; border-color: #d6819a !important; }
+        .block-btn:hover, #block-confirm:hover { background: #5d4827 !important; color: #ffe3ac !important; border-color: #c7a367 !important; }
+    }
+    </style>
+    <style id="matching-date-controls">
+    @media screen {
+        .date-search-wrap, .date-clear-btn, .active-filter-tag {
+            min-height: 36px; padding: 8px 14px; border-radius: 8px;
+            background: #203e58 !important; color: #c4e7ff !important;
+            border: 1px solid #4e83a8 !important;
+            font: 600 12px var(--sans); line-height: 18px;
+            box-sizing: border-box;
+        }
+        .date-search-wrap { gap: 8px; }
+        .date-input { color: #c4e7ff; font: inherit; min-width: 0; }
+        .date-search-wrap svg { color: #c4e7ff !important; }
+        .date-clear-btn { justify-content: center; gap: 8px; transition: background .18s, border-color .18s, color .18s; }
+        .date-clear-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .date-search-wrap:hover, .date-search-wrap:focus-within, .date-clear-btn:hover {
+            background: #2a506e !important; color: #eff9ff !important; border-color: #79b7df !important;
+        }
+        .date-search-wrap:focus-within { outline: 3px solid #7dd3fc; outline-offset: 3px; }
+        .date-clear-btn:active { background: #183347 !important; }
+    }
+    </style>
+    <style id="consistent-control-sizing">
+    @media screen {
+        .date-search-wrap, .date-clear-btn, .active-filter-tag,
+        .print-history-btn, .print-session-btn {
+            height: 36px !important; min-height: 36px !important;
+            padding: 8px 12px !important; border-radius: 8px !important;
+            box-sizing: border-box !important; gap: 8px !important;
+            font-family: var(--sans) !important; font-size: 12px !important;
+            font-weight: 600 !important; line-height: 18px !important;
+            vertical-align: middle; white-space: nowrap;
+        }
+        .date-input { height: 18px; padding: 0; margin: 0; font: 600 12px/18px var(--sans); }
+        .date-search-wrap svg, .date-clear-btn svg,
+        .print-history-btn svg, .print-session-btn svg {
+            width: 15px !important; height: 15px !important; flex: 0 0 15px;
+        }
+        .date-filter-bar, .audit-controls-bottom { align-items: center; gap: 8px; }
+        .action-btn-group > button {
+            height: 36px; min-height: 36px; padding: 8px 12px;
+            font: 600 12px/18px var(--sans); border-radius: 8px; box-sizing: border-box;
+        }
+    }
+    </style>
+    <style id="purpose-based-control-colors">
+    @media screen {
+        .date-search-wrap {
+            background: #172536 !important; color: #d6e2ef !important;
+            border-color: #50657c !important;
+        }
+        .date-input, .date-search-wrap svg { color: #d6e2ef !important; }
+        .date-search-wrap:hover, .date-search-wrap:focus-within {
+            background: #203247 !important; border-color: #83a2c2 !important;
+            color: #eef5fc !important;
+        }
+        .date-clear-btn {
+            background: #292e39 !important; color: #d5d9e1 !important;
+            border-color: #626a79 !important;
+        }
+        .date-clear-btn:hover {
+            background: #393f4c !important; color: #f5f6f8 !important;
+            border-color: #919aaa !important;
+        }
+        .date-clear-btn:active { background: #222630 !important; }
+        .active-filter-tag {
+            background: #1d3345 !important; color: #b2d9f4 !important;
+            border-color: #4b7594 !important;
+        }
+        .print-history-btn, .print-session-btn {
+            background: #204d70 !important; color: #dcf1ff !important;
+            border-color: #599ac6 !important;
+        }
+        .print-history-btn:hover, .print-session-btn:hover {
+            background: #2b628b !important; color: #ffffff !important;
+            border-color: #8ac7ed !important;
+        }
+    }
+    </style>
 </head>
 <body>
 
@@ -616,6 +770,7 @@
     <div class="modal-overlay" id="modal-approve"><div class="modal"><div class="modal-title">Approve Account</div><div class="modal-desc" id="approve-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="approve-cancel">Cancel</button><button class="modal-confirm-green" id="approve-confirm">Approve</button></div></div></div>
     <div class="modal-overlay" id="modal-reject"><div class="modal"><div class="modal-title">Reject Account</div><div class="modal-desc" id="reject-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="reject-cancel">Cancel</button><button class="modal-confirm-red" id="reject-confirm">Reject</button></div></div></div>
     <div class="modal-overlay" id="modal-delete-admin"><div class="modal"><div class="modal-title">Delete Admin Account</div><div class="modal-desc" id="delete-admin-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="delete-admin-cancel">Cancel</button><button class="modal-confirm-red" id="delete-admin-confirm">Delete</button></div></div></div>
+    <div class="modal-overlay" id="modal-block"><div class="modal"><div class="modal-title">Block Administrator?</div><div class="modal-desc" id="block-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="block-cancel">Cancel</button><button class="modal-confirm-red" id="block-confirm">Block Account</button></div></div></div>
     <div class="modal-overlay" id="modal-unlock"><div class="modal"><div class="modal-title">Unlock Account</div><div class="modal-desc" id="unlock-desc">—</div><div class="modal-buttons"><button class="modal-cancel" id="unlock-cancel">Cancel</button><button class="modal-confirm-green" id="unlock-confirm">Unlock</button></div></div></div>
 
     <div class="layout">
@@ -839,15 +994,15 @@
                                 <thead>
                                     <tr>
                                         <th style="width:5%;">#</th>
-                                        <th style="width:20%;">Full Name</th>
+                                        <th style="width:22%;">Full Name</th>
                                         <th style="width:18%;">Username</th>
-                                        <th style="width:25%;">Email Address</th>
-                                        <th style="width:15%;">Role</th>
+                                        <th style="width:26%;">Email Address</th>
+                                        <th style="width:12%;">Status</th>
                                         <th style="width:17%; text-align: center;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="active-admins-tbody">
-                                    <tr><td colspan="6" class="empty-history">Loading active administrators...</td></tr>
+                                    <tr><td colspan="6" class="empty-history">Loading administrator accounts...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -868,7 +1023,7 @@
                                         <th style="width:5%;">#</th>
                                         <th style="width:22%;">Full Name</th>
                                         <th style="width:18%;">Username</th>
-                                        <th style="width:25%;">Email Address</th>
+                                        <th style="width:26%;">Email Address</th>
                                         <th style="width:15%;">Date Requested</th>
                                         <th style="width:15%; text-align: center;">Actions</th>
                                     </tr>
@@ -902,11 +1057,7 @@
                                             Export Sessions
                                         </button>
                                     </div>
-                                    <div class="filter-group">
-                                        <button class="filter-btn session-role-btn active" data-role="all">All Sessions</button>
-                                        <button class="filter-btn session-role-btn" data-role="admin">Admin</button>
-                                        <button class="filter-btn session-role-btn" data-role="main_admin">Main Admin Only</button>
-                                    </div>
+
                                 </div>
                             </div>
 
@@ -1201,9 +1352,6 @@
         let statusHtml = '';
         if (occupied) {
             statusHtml = '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>';
-            if (notWorking) {
-                statusHtml += ' <span class="stale-tag">stale</span>';
-            }
         } else {
             statusHtml = '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
         }
@@ -1466,13 +1614,13 @@
             db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val() || {})
                     .map(([uid, d]) => ({ uid, ...d }))
-                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A');
+                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A' && a.role !== 'main_admin');
 
                 document.getElementById('admin-count-badge').textContent = `${list.length} Admin(s)`;
                 const tbody = document.getElementById('active-admins-tbody');
 
                 if (!list.length) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="empty-history">No active administrator accounts found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-history">No administrator accounts found.</td></tr>`;
                     return;
                 }
 
@@ -1486,25 +1634,20 @@
                         ? '<span class="role-badge main-admin">Main Admin</span>'
                         : '<span class="role-badge admin">Admin</span>';
 
-                    let actionsHtml = '';
-                    if (isBlocked) {
-                        actionsHtml = `<button class="unlock-btn" onclick="openUnlockModal('${a.uid}', '${(a.name || a.username).replace(/'/g, "\\'")}')">
-                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
-                            Unblock
-                        </button>`;
-                    } else {
-                        actionsHtml = `<button class="delete-btn" ${!canDelete ? 'disabled title="Main Admins cannot delete their own account"' : ''} onclick="confirmDeleteAdmin('${a.uid}', '${(a.name || a.username).replace(/'/g, "\\'")}')">
-                            <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            Delete
-                        </button>`;
-                    }
+                    const safeUid = JSON.stringify(a.uid).replace(/"/g, '&quot;');
+                    const safeName = JSON.stringify(a.name || a.username).replace(/"/g, '&quot;');
+                    const accessAction = isBlocked
+                        ? `<button class="unlock-btn" onclick="openUnlockModal(${safeUid}, ${safeName})">Unblock</button>`
+                        : `<button class="block-btn" onclick="openBlockModal(${safeUid}, ${safeName})">Block</button>`;
+                    const actionsHtml = `<div class="action-btn-group">${accessAction}
+                        <button class="delete-btn" onclick="confirmDeleteAdmin(${safeUid}, ${safeName})">Delete</button></div>`;
 
                     return `<tr>
                         <td>${i+1}</td>
                         <td>${a.name || '—'}</td>
                         <td>@${a.username}</td>
                         <td>${a.email || '—'}</td>
-                        <td>${roleBadge}</td>
+                        <td><span class="account-status ${isBlocked ? 'blocked' : 'active'}">${isBlocked ? 'Blocked' : 'Active'}</span></td>
                         <td style="text-align: center;">
                             ${actionsHtml}
                         </td>
@@ -1512,6 +1655,41 @@
                 }).join('');
             });
         }
+
+        /* ── Manual Block Modal (uses existing adminUsers.blocked field) ── */
+        let adminToBlock = null;
+        function openBlockModal(uid, name) {
+            if (uid === currentActiveUid) return;
+            adminToBlock = uid;
+            document.getElementById('block-desc').textContent = `Block administrator "${name}"? They will be unable to sign in until unblocked.`;
+            document.getElementById('modal-block').classList.add('visible');
+        }
+        document.getElementById('block-cancel').addEventListener('click', () => {
+            document.getElementById('modal-block').classList.remove('visible');
+            adminToBlock = null;
+        });
+        document.getElementById('block-confirm').addEventListener('click', async () => {
+            const uid = adminToBlock;
+            if (!uid) return;
+            const button = document.getElementById('block-confirm');
+            button.disabled = true;
+            try {
+                const snap = await db.ref('adminUsers/' + uid).once('value');
+                if (!snap.exists() || snap.val().role === 'main_admin') throw new Error('Only regular administrator accounts can be blocked.');
+                const updates = { ['/adminUsers/' + uid + '/blocked']: true };
+                const sessions = await db.ref('adminSessions').orderByChild('uid').equalTo(uid).once('value');
+                sessions.forEach(session => {
+                    if (!session.val().logoutTime) {
+                        updates['/adminSessions/' + session.key + '/logoutTime'] = firebase.database.ServerValue.TIMESTAMP;
+                        updates['/adminSessions/' + session.key + '/status'] = 'revoked';
+                    }
+                });
+                await db.ref().update(updates);
+                document.getElementById('modal-block').classList.remove('visible');
+                adminToBlock = null;
+            } catch (err) { alert('Unable to block account: ' + err.message); }
+            finally { button.disabled = false; }
+        });
 
         /* ── Unlock Modal ── */
         let adminToUnlock = null;
@@ -1551,7 +1729,7 @@
                 return;
             }
             deleteAdminUid = uid;
-            document.getElementById('delete-admin-desc').textContent = `Are you sure you want to delete administrator account "${name}"?\nThey will lose all access immediately and won't be able to log in again.`;
+            document.getElementById('delete-admin-desc').textContent = `Are you sure you want to delete administrator account "${name}"?\nTheir dashboard access will be removed. This does not delete their Firebase Authentication credentials.`;
             document.getElementById('modal-delete-admin').classList.add('visible');
         }
 
@@ -1596,11 +1774,7 @@
         function renderAdminSessionsTable() {
             let filtered = rawSessionsList;
 
-            if (activeSessionRoleFilter === 'admin') {
-                filtered = filtered.filter(s => s.role === 'admin' || !s.role);
-            } else if (activeSessionRoleFilter === 'main_admin') {
-                filtered = filtered.filter(s => s.role === 'main_admin');
-            }
+            filtered = filtered.filter(s => s.role === 'admin' || !s.role);
 
             if (activeSessionDateKey) {
                 filtered = filtered.filter(s => s.loginTime && dateKey(new Date(s.loginTime)) === activeSessionDateKey);
@@ -1642,12 +1816,7 @@
                     ? '<span class="audit-badge active"><span class="status-dot"></span>Active</span>'
                     : '<span class="audit-badge signed-out">Signed Out</span>';
 
-                let roleBadge = '';
-                if (activeSessionRoleFilter === 'all') {
-                    roleBadge = s.role === 'main_admin'
-                        ? '<span class="role-badge main-admin" style="font-size:9px; padding:2px 6px;">Main Admin</span>'
-                        : '<span class="role-badge admin" style="font-size:9px; padding:2px 6px;">Admin</span>';
-                }
+                const roleBadge = '';
 
                 return `<tr>
                     <td style="font-family: var(--mono); color: var(--text-secondary); font-size: 12px; font-weight: 600;">${i + 1}</td>
@@ -1781,19 +1950,19 @@
         }
 
         function printSessions() {
-            if (!currentFilteredSessions.length) return alert('No session logs to print.');
+            const adminSessions = currentFilteredSessions.filter(s => s.role === 'admin' || !s.role);
+            if (!adminSessions.length) return alert('No admin session logs to print.');
 
-            const roleLabels = { all: 'All Sessions', admin: 'Admin Only', main_admin: 'Main Admin Only' };
-            const roleStr = roleLabels[activeSessionRoleFilter] || 'All Sessions';
+            const roleStr = 'Admin Only';
             const dateStr = activeSessionDateKey ? ` | Date: ${activeSessionDateKey}` : '';
 
             document.getElementById('print-title').textContent = 'iPark Admin Sessions Report ';
             document.getElementById('print-date').textContent = new Date().toLocaleString('en-PH');
-            document.getElementById('print-subtitle').textContent = `Admin Sessions: ${roleStr}${dateStr}  •  ${currentFilteredSessions.length} Record(s)`;
+            document.getElementById('print-subtitle').textContent = `Admin Sessions: ${roleStr}${dateStr}  •  ${adminSessions.length} Record(s)`;
 
-            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Login Time</th><th>Logout Time</th></tr>';
+            document.getElementById('print-thead').innerHTML = '<tr><th>#</th><th>Name</th><th>Username</th><th>Email</th><th>Login Time</th><th>Logout Time</th></tr>';
 
-            document.getElementById('print-tbody').innerHTML = currentFilteredSessions.map((s, i) => {
+            document.getElementById('print-tbody').innerHTML = adminSessions.map((s, i) => {
                 const loginDt = s.loginTime ? new Date(s.loginTime) : null;
                 const logoutDt = s.logoutTime ? new Date(s.logoutTime) : null;
 
@@ -1802,13 +1971,12 @@
                     <td>${s.name || 'Unknown'}</td>
                     <td>${s.username || 'N/A'}</td>
                     <td>${s.email || '—'}</td>
-                    <td>${s.role === 'main_admin' ? 'Main Admin' : 'Admin'}</td>
                     <td>${loginDt ? loginDt.toLocaleString('en-PH') : '—'}</td>
                     <td>${logoutDt ? logoutDt.toLocaleString('en-PH') : '—'}</td>
                 </tr>`;
             }).join('');
 
-            exportReportPDF('iPARK_Admin_Sessions_' + activeSessionRoleFilter + '.pdf');
+            exportReportPDF('iPARK_Admin_Sessions.pdf');
         }
 
         /* PDF-only export: existing history and audit data preparation is unchanged. */
@@ -1868,13 +2036,24 @@
                     if (!logo.naturalWidth) logo.remove();
                 }
                 await html2pdf().set({
-                    margin: [12.7, 12.7, 12.7, 12.7], // Narrow margins (0.5 in)
+                    margin: [5, 12.7, 12.7, 12.7], // smaller top margin
                     filename: filename,
                     image: { type: 'jpeg', quality: 0.97 },
                     html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                     pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
-                }).from(copy).save();
+                }).from(copy).toPdf().get('pdf').then(function (pdf) {
+                    const total = pdf.internal.getNumberOfPages();
+                    const w = pdf.internal.pageSize.getWidth();
+                    const h = pdf.internal.pageSize.getHeight();
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(90, 100, 115);
+                    for (let i = 1; i <= total; i++) {
+                        pdf.setPage(i);
+                        pdf.text(i + '/' + total, w / 2, h - 6, { align: 'center' });
+                    }
+                }).save();
             } catch (error) {
                 console.error('PDF export failed:', error);
                 alert('Could not export the PDF. Please try again.');

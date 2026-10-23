@@ -196,6 +196,9 @@
             transition: all 0.25s ease;
         }
 
+        .password-toggle { position:absolute; right:12px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:var(--text-sub); cursor:pointer; display:grid; place-items:center; padding:6px; border-radius:6px; }
+        .password-toggle:hover, .password-toggle:focus-visible { color:var(--primary); outline:1px solid var(--border-hover); }
+        .input-wrapper:has(.password-toggle) .form-input { padding-right:48px; }
         .form-input::placeholder {
             color: rgba(100, 116, 139, 0.6);
         }
@@ -397,6 +400,7 @@
                 <div class="input-wrapper">
                     <input class="form-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
                     <i class="fa-solid fa-lock input-icon"></i>
+                    <button type="button" class="password-toggle" data-password-target="login-password" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye-slash" aria-hidden="true"></i></button>
                 </div>
             </div>
 
@@ -455,6 +459,7 @@
                 <div class="input-wrapper">
                     <input class="form-input" id="reg-password" type="password" placeholder="Min. 6 characters">
                     <i class="fa-solid fa-lock input-icon"></i>
+                    <button type="button" class="password-toggle" data-password-target="reg-password" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye-slash" aria-hidden="true"></i></button>
                 </div>
             </div>
 
@@ -463,6 +468,7 @@
                 <div class="input-wrapper">
                     <input class="form-input" id="reg-confirm" type="password" placeholder="Re-type password">
                     <i class="fa-solid fa-lock input-icon"></i>
+                    <button type="button" class="password-toggle" data-password-target="reg-confirm" aria-label="Show password" aria-pressed="false"><i class="fa-regular fa-eye-slash" aria-hidden="true"></i></button>
                 </div>
             </div>
 
@@ -509,6 +515,18 @@
     </div>
 
 <script>
+    /* Show/hide passwords on Sign In and Registration */
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.dataset.passwordTarget);
+            const showing = input.type === 'password';
+            input.type = showing ? 'text' : 'password';
+            button.setAttribute('aria-label', showing ? 'Hide password' : 'Show password');
+            button.setAttribute('aria-pressed', String(showing));
+            button.querySelector('i').className = showing ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+        });
+    });
+
     /* ── Firebase Config ── */
     const firebaseConfig = {
         apiKey:      "AIzaSyAbv16PPzGg2BDiYImaXnRl0NRb6siq1jc",
@@ -684,7 +702,7 @@
                         failedAttempts: 3,
                         blocked: true
                     }).then(() => {
-                        setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                        setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.');
                         passEl.classList.add('field-error');
                     });
                 } else if (attempts === 2) {
@@ -752,7 +770,7 @@
 
                 // ✅ Blocked check FIRST — before attempting Firebase Auth
                 if (userData.blocked === true) {
-                    setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                    setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.');
                     usernameEl.classList.add('field-error');
                     resetSignInBtn();
                     return;
@@ -805,7 +823,7 @@
                                             failedAttempts: 3,
                                             blocked: true
                                         }).then(() => {
-                                            setStatus('signin-error-msg', 'The account is block contact the main admin.');
+                                            setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.');
                                             passEl.classList.add('field-error');
                                         });
                                     } else {
@@ -993,7 +1011,7 @@
                     if (!userData.blocked) {
                         window.location.href = 'admin4.html';
                     } else {
-                        auth.signOut();
+                        auth.signOut().then(() => setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.'));
                     }
                 }
             });
