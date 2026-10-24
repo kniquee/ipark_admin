@@ -876,6 +876,168 @@
         .stat-bar-track { background: rgba(255,255,255,.05); }
     }
     </style>
+<style id="slot-activity-polish">
+@media screen {
+    #page-dashboard .slot-table { table-layout: fixed; min-width: 760px; }
+    #page-dashboard .slot-table th:nth-child(1) { width: 16% !important; }
+    #page-dashboard .slot-table th:nth-child(2) { width: 12% !important; }
+    #page-dashboard .slot-table th:nth-child(3) { width: 32% !important; }
+    #page-dashboard .slot-table th:nth-child(4) { width: 16% !important; }
+    #page-dashboard .slot-table th:nth-child(5) { width: 24% !important; }
+    #page-dashboard .slot-table td { vertical-align: middle; padding: 15px 18px; }
+    #page-dashboard .slot-table .col-status { padding-top: 14px; padding-bottom: 14px; }
+    #page-dashboard .slot-table tr[data-status="unavailable"] { background: rgba(148,163,184,.045); }
+    #page-dashboard .slot-table tr[data-status="unavailable"] td:first-child { box-shadow: inset 3px 0 #718096; }
+    #page-dashboard .status-badge.manually-unavailable {
+        display: inline-flex; align-items: center; padding: 5px 10px;
+        font: 600 12px/18px var(--sans); letter-spacing: 0;
+        background: #293548; color: #e2e8f0; border: 1px solid #677a94;
+    }
+    #page-dashboard .slot-management-label { display:block; margin-top:6px; padding:0; border:0; border-radius:0; background:transparent; color:var(--text-secondary); font:400 12px/1.5 var(--sans); max-width:260px; overflow-wrap:anywhere; }
+    #page-dashboard .section-tools .slot-manage-btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        height: 36px; padding: 8px 13px; border-radius: 8px;
+        background: #3d345d; color: #e1d5ff; border: 1px solid #8b75b7;
+        font: 600 12px/18px var(--sans); white-space: nowrap;
+        transition: background .18s, border-color .18s;
+    }
+    #page-dashboard .section-tools .slot-manage-btn::before { content: '⚙'; font-size: 16px; line-height: 1; }
+    #page-dashboard .section-tools .slot-manage-btn:hover { background: #504376; border-color: #b29cde; }
+    #page-dashboard .section-tools .slot-manage-btn:active { background: #302848; }
+    html[data-theme="light"] #page-dashboard .slot-table tr[data-status="unavailable"] { background: #f3f5f8; }
+    html[data-theme="light"] #page-dashboard .status-badge.manually-unavailable { background: #e7ecf2; color: #34465c; border-color: #9aaabd; }
+    html[data-theme="light"] #page-dashboard .section-tools .slot-manage-btn { background: #eee8f9; color: #583c83; border-color: #ac94cc; }
+    html[data-theme="light"] #page-dashboard .section-tools .slot-manage-btn:hover { background: #e0d4f2; border-color: #8a6cb1; }
+}
+</style>
+<style id="centered-slot-activity">
+@media screen {
+    #page-dashboard .slot-table th,
+    #page-dashboard .slot-table td { text-align: center !important; vertical-align: middle !important; }
+    #page-dashboard .slot-table .col-status { text-align: center !important; }
+    #page-dashboard .slot-table .status-badge,
+    #page-dashboard .slot-table .sensor-badge { justify-content: center; vertical-align: middle; }
+    #page-dashboard .slot-table .slot-management-label {
+        width: auto; max-width: 260px; margin: 6px auto 0;
+        text-align: center; white-space: normal; overflow-wrap: anywhere;
+    }
+}
+</style>
+<style id="slot-activity-column-spacing">
+@media screen {
+    #page-dashboard .slot-table th:nth-child(1) { width: 12% !important; }
+    #page-dashboard .slot-table th:nth-child(2) { width: 10% !important; }
+    #page-dashboard .slot-table th:nth-child(3) { width: 24% !important; }
+    #page-dashboard .slot-table th:nth-child(4) { width: 26% !important; }
+    #page-dashboard .slot-table th:nth-child(5) { width: 28% !important; }
+    #page-dashboard .slot-table th:nth-child(-n+3),
+    #page-dashboard .slot-table td:nth-child(-n+3) { padding-left: 12px; padding-right: 12px; }
+}
+</style>
+<style id="slot-activity-centered-group">
+@media screen {
+    #page-dashboard .slot-table {
+        width: calc(100% - 96px); max-width: 1120px;
+        min-width: 664px; margin: 0 auto;
+    }
+    #page-dashboard .slot-table th:nth-child(1) { width: 20% !important; }
+    #page-dashboard .slot-table th:nth-child(2) { width: 16% !important; }
+    #page-dashboard .slot-table th:nth-child(3) { width: 28% !important; }
+    #page-dashboard .slot-table th:nth-child(4) { width: 16% !important; }
+    #page-dashboard .slot-table th:nth-child(5) { width: 20% !important; }
+    #page-dashboard .slot-table th,
+    #page-dashboard .slot-table td { padding-left: 10px; padding-right: 10px; }
+}
+@media screen and (max-width: 900px) {
+    #page-dashboard .slot-table { width: calc(100% - 32px); }
+}
+</style>
+<style id="slot-activity-full-width-lines">
+@media screen {
+    #page-dashboard .slot-table tr { position: relative; }
+    #page-dashboard .slot-table tr::after {
+        content: ''; position: absolute; height: 1px; bottom: 0;
+        left: 0; right: 0; pointer-events: none;
+        background: var(--border-soft);
+        box-shadow: -600px 0 0 var(--border-soft), 600px 0 0 var(--border-soft), -1200px 0 0 var(--border-soft), 1200px 0 0 var(--border-soft);
+    }
+    #page-dashboard .slot-table thead tr::after {
+        background: var(--border);
+        box-shadow: -600px 0 0 var(--border), 600px 0 0 var(--border), -1200px 0 0 var(--border), 1200px 0 0 var(--border);
+    }
+    #page-dashboard .slot-table td,
+    #page-dashboard .slot-table thead tr { border-bottom-color: transparent; }
+}
+</style>
+<style id="slot-activity-full-width-surfaces">
+@media screen {
+    #page-dashboard .slot-table {
+        width: 100%; max-width: none; min-width: 760px; margin: 0;
+        --slot-gutter: max(48px, calc((100% - 1120px) / 2));
+        --slot-col20: min(calc(20% - 19.2px), 224px);
+        --slot-col16: min(calc(16% - 15.36px), 179.2px);
+        --slot-col28: min(calc(28% - 26.88px), 313.6px);
+    }
+    #page-dashboard .slot-table th:nth-child(1),
+    #page-dashboard .slot-table th:nth-child(5) { width: calc(var(--slot-gutter) + var(--slot-col20)) !important; }
+    #page-dashboard .slot-table th:nth-child(2),
+    #page-dashboard .slot-table th:nth-child(4) { width: var(--slot-col16) !important; }
+    #page-dashboard .slot-table th:nth-child(3) { width: var(--slot-col28) !important; }
+    #page-dashboard .slot-table th:first-child,
+    #page-dashboard .slot-table td:first-child { padding-left: calc(var(--slot-gutter) + 10px); }
+    #page-dashboard .slot-table th:last-child,
+    #page-dashboard .slot-table td:last-child { padding-right: calc(var(--slot-gutter) + 10px); }
+    #page-dashboard .slot-table tr::after { content: none; }
+    #page-dashboard .slot-table td { border-bottom: 1px solid var(--border-soft); }
+    #page-dashboard .slot-table thead tr { border-bottom: 1px solid var(--border); }
+}
+@media screen and (max-width: 900px) {
+    #page-dashboard .slot-table {
+        min-width: 696px;
+        --slot-gutter: 16px;
+        --slot-col20: calc(20% - 6.4px);
+        --slot-col16: calc(16% - 5.12px);
+        --slot-col28: calc(28% - 8.96px);
+    }
+}
+</style>
+<style id="sensor-coverage-labels">
+@media screen {
+    #page-dashboard .status-badge.not-monitored,
+    #page-dashboard .sensor-badge.no-sensor { background:#263243; color:#bac7d8; border:1px solid #52647c; }
+    html[data-theme="light"] #page-dashboard .status-badge.not-monitored,
+    html[data-theme="light"] #page-dashboard .sensor-badge.no-sensor { background:#edf1f5; color:#4c6078; border-color:#b8c5d4; }
+}
+</style>
+<style id="occupied-only-row-highlights">
+@media screen {
+    #page-dashboard .slot-table tbody tr,
+    #page-dashboard .slot-table tbody tr:hover {
+        background: transparent !important; box-shadow: none !important; animation: none !important;
+    }
+    #page-dashboard .slot-table tbody tr td:first-child { box-shadow: none !important; }
+    #page-dashboard .slot-table tbody tr[data-status="occupied"],
+    #page-dashboard .slot-table tbody tr.row-critical:not([data-status="unavailable"]) { background: rgba(244,63,94,.07) !important; }
+    #page-dashboard .slot-table tbody tr[data-status="occupied"] td:first-child,
+    #page-dashboard .slot-table tbody tr.row-critical:not([data-status="unavailable"]) td:first-child { box-shadow: inset 3px 0 #be6175 !important; }
+    html[data-theme="light"] #page-dashboard .slot-table tbody tr[data-status="occupied"],
+    html[data-theme="light"] #page-dashboard .slot-table tbody tr.row-critical:not([data-status="unavailable"]) { background: #fff0f3 !important; }
+}
+</style>
+<style id="readable-wing-slot-labels">
+@media screen {
+    #page-dashboard .slot-table .wing-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 30px; padding: 4px 10px;
+        font-size: 12px; font-weight: 700; line-height: 20px; letter-spacing: .7px;
+    }
+    #page-dashboard .slot-table .slot-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 32px; min-width: 46px; padding: 4px 10px;
+        font-size: 15px; font-weight: 700; line-height: 22px;
+    }
+}
+</style>
 </head>
 <body>
 
@@ -989,6 +1151,7 @@
                                     <button class="filter-btn active" data-filter="all">All</button>
                                     <button class="filter-btn" data-filter="occupied">Occupied</button>
                                     <button class="filter-btn" data-filter="available">Available</button>
+                                    <button class="filter-btn" data-filter="unavailable">Unavailable</button>
                                     <button class="filter-btn" data-filter="not-working" id="filter-btn-not-working">
                                         Not Working <span id="filter-not-working-count" class="filter-count-badge" style="display:none;">0</span>
                                         </button>
@@ -1227,9 +1390,11 @@
         const auth = firebase.auth();
         const db   = firebase.database();
 
+        const MONITORED_SLOTS = new Set(['L1', 'M2', 'M4', 'M6', 'R3', 'R5']);
         const ALL_SLOTS = ['L1','M1','M2','M3','M4','M5','M6','M7','R1','R2','R3','R4','R5','R6','R7','R8','R9','R10','R11','R12','R13'];
 
         let globalSlotsState = {};
+        let globalSlotManagementState = {};
         let globalHistoryState = {};
         let currentSlot = null;
         let isAllSlots = true;
@@ -1438,17 +1603,24 @@
     rows.forEach(row => {
         const id = row.dataset.slot;
         const sData = globalSlotsState[id] || {};
+        const hasSensor = MONITORED_SLOTS.has(id);
+        const management = globalSlotManagementState[id] || {};
+        const unavailable = management.enabled === false;
 
         // 1. Check Sensor Health
         const sensorStatus = sData.sensorStatus || '';
-        const notWorking = (sensorStatus === 'Not Working' || sensorStatus === 'not_working' || sData.status === 'Not Working' || sData.status === 'not_working');
+        const notWorking = hasSensor && (sensorStatus === 'Not Working' || sensorStatus === 'not_working' || sData.status === 'Not Working' || sData.status === 'not_working');
 
         // 2. Check Occupancy State
-        const occupied = (sData.occupied === true || sData.status === 'Occupied' || sData.status === 'occupied');
+        const occupied = hasSensor && (sData.occupied === true || sData.status === 'Occupied' || sData.status === 'occupied');
         const timeIn = sData.timeIn || 0;
 
         // Row Dataset Filter Tag
-        if (notWorking) {
+        if (unavailable) {
+            row.dataset.status = 'unavailable';
+        } else if (!hasSensor) {
+            row.dataset.status = 'unavailable';
+        } else if (notWorking) {
             row.dataset.status = 'not-working';
         } else {
             row.dataset.status = occupied ? 'occupied' : 'available';
@@ -1463,12 +1635,24 @@
 
         // Status Column
         let statusHtml = '';
-        if (occupied) {
+        if (unavailable) {
+            statusHtml = '<span class="status-badge manually-unavailable">× Unavailable</span>';
+        } else if (!hasSensor) {
+            statusHtml = '<span class="status-badge manually-unavailable">× Unavailable</span>';
+        } else if (occupied) {
             statusHtml = '<span class="status-badge occupied"><span class="status-dot"></span>Occupied</span>';
         } else {
             statusHtml = '<span class="status-badge available"><span class="status-dot"></span>Available</span>';
         }
-        row.querySelector('.col-status').innerHTML = statusHtml;
+        const statusCell = row.querySelector('.col-status');
+        statusCell.innerHTML = statusHtml;
+        if (unavailable && id !== 'M1') {
+            const label = document.createElement('span');
+            label.className = 'slot-management-label';
+            label.textContent = management.reason || 'Reason not provided';
+            if (management.details) label.textContent += ' — ' + management.details;
+            statusCell.appendChild(label);
+        }
 
         // Time In Column (Preserved when occupied)
         row.querySelector('.col-timein').innerHTML = occupied
@@ -1477,7 +1661,9 @@
 
         // Sensor Column
         const sensorCell = row.querySelector('.col-sensor');
-        if (notWorking) {
+        if (!hasSensor) {
+            sensorCell.innerHTML = '<span class="sensor-badge no-sensor">Not Working</span>';
+        } else if (notWorking) {
             sensorCell.innerHTML = `<span class="sensor-badge not-working">
                 <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
                 Not Working
@@ -1498,31 +1684,38 @@
             // Occupied slots (Working or Not Working) go to top group
             occupiedGroup.push({ row, timeIn });
         } else {
-            av++;
+            if (hasSensor && !unavailable) av++;
             // Available slots (Working or Not Working) go to bottom group
             availableGroup.push(row);
         }
     });
 
-    // 1. Sort Occupied group by timeIn (newest arrivals at the top)
-    occupiedGroup.sort((a, b) => b.timeIn - a.timeIn);
-
-    // 2. Sort Available group by original physical slot order
-    availableGroup.sort((a, b) => {
+    // Occupied first, Available in physical slot order, Unavailable last.
+    const rowRank = row => {
+        if (row.dataset.status === 'unavailable') return 2;
+        const data = globalSlotsState[row.dataset.slot] || {};
+        return MONITORED_SLOTS.has(row.dataset.slot) &&
+            (data.occupied === true || data.status === 'Occupied' || data.status === 'occupied') ? 0 : 1;
+    };
+    rows.sort((a, b) => {
+        const rankDifference = rowRank(a) - rowRank(b);
+        if (rankDifference) return rankDifference;
+        if (rowRank(a) === 0) {
+            const timeDifference = (globalSlotsState[b.dataset.slot]?.timeIn || 0) -
+                (globalSlotsState[a.dataset.slot]?.timeIn || 0);
+            if (timeDifference) return timeDifference;
+        }
         return originalOrder.indexOf(a.dataset.slot) - originalOrder.indexOf(b.dataset.slot);
     });
-
-    // Append Occupied on top, Available below
-    occupiedGroup.forEach(x => tbody.appendChild(x.row));
-    availableGroup.forEach(row => tbody.appendChild(row));
+    rows.forEach(row => tbody.appendChild(row));
 
     // Update Stat Cards
     document.getElementById('stat-available').textContent = av;
     document.getElementById('stat-occupied').textContent = oc;
-    document.getElementById('stat-avail-pct').textContent = `${Math.round((av/21)*100)}% capacity`;
-    document.getElementById('stat-occup-pct').textContent = `${Math.round((oc/21)*100)}% capacity`;
-    document.getElementById('stat-avail-bar').style.width = `${(av/21)*100}%`;
-    document.getElementById('stat-occup-bar').style.width = `${(oc/21)*100}%`;
+    document.getElementById('stat-avail-pct').textContent = `${av} slots available`;
+    document.getElementById('stat-occup-pct').textContent = `${oc} slots occupied`;
+    document.getElementById('stat-avail-bar').style.width = `${(av/MONITORED_SLOTS.size)*100}%`;
+    document.getElementById('stat-occup-bar').style.width = `${(oc/MONITORED_SLOTS.size)*100}%`;
 
     
 
@@ -2202,6 +2395,115 @@
   new MutationObserver(syncIdentity).observe(badgeEl, {childList:true, subtree:true, characterData:true});
   new MutationObserver(syncIdentity).observe(nameEl, {childList:true, subtree:true, characterData:true});
   syncIdentity();
+})();
+</script>
+<style id="slot-management-styles">
+.slot-manage-btn { min-height:36px; padding:8px 12px; border-radius:8px; border:1px solid #4e83a8; background:#203e58; color:#c4e7ff; font:600 12px var(--sans); cursor:pointer; }
+.slot-management-label { display:block; margin-top:6px; color:var(--text-secondary); font-size:12px; line-height:1.5; max-width:260px; overflow-wrap:anywhere; }
+.status-badge.manually-unavailable { background:#283345; color:#dce5ef; border:1px solid #64748b; }
+html[data-theme="light"] .status-badge.manually-unavailable { background:#edf1f5; color:#40536a; border-color:#a5b5c8; }
+#slot-management-dialog { margin:auto; padding:24px; width:min(440px,calc(100% - 32px)); border:1px solid var(--border); border-radius:14px; background:var(--bg-card); color:var(--text-primary); font-family:var(--sans); }
+#slot-management-dialog::backdrop { background:rgba(0,0,0,.6); }
+#slot-management-dialog h2 { font-size:20px; margin-bottom:16px; }
+#slot-management-dialog label { display:block; margin-top:14px; margin-bottom:6px; font-weight:600; }
+#slot-management-dialog select,#slot-management-dialog textarea { width:100%; padding:10px; background:var(--bg-deep); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; font:inherit; }
+#slot-management-dialog .modal-buttons { margin-top:20px; }
+#slot-management-feedback { min-height:20px; margin-top:12px; color:var(--text-secondary); }
+html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; border-color:#a9c8df; }
+</style>
+<dialog id="slot-management-dialog" aria-labelledby="slot-management-title">
+<form id="slot-management-form">
+<h2 id="slot-management-title">Manage Parking Slot</h2>
+<label for="slot-management-slot">Parking slot</label>
+<select id="slot-management-slot" required><option value="">Select a slot</option></select>
+<label for="slot-management-enabled">Slot availability</label>
+<select id="slot-management-enabled"><option value="true">Enabled — follows the sensor</option><option value="false">Unavailable</option></select>
+<div id="slot-management-reasons" hidden>
+<label for="slot-management-reason">Reason</label>
+<select id="slot-management-reason"><option value="">Select a reason</option><option>Maintenance</option><option>Temporarily in use</option><option>Blocked by an obstruction</option><option>Other</option></select>
+<div id="slot-management-details-group" hidden>
+<label for="slot-management-details">Details <span id="slot-management-details-hint">(optional)</span></label>
+<textarea id="slot-management-details" rows="3" maxlength="300"></textarea>
+</div>
+</div>
+<p id="slot-management-feedback" role="status" aria-live="polite"></p>
+<div class="modal-buttons"><button type="button" class="modal-cancel" id="slot-management-cancel">Cancel</button><button type="submit" class="slot-manage-btn" id="slot-management-save">Save Changes</button></div>
+</form>
+</dialog>
+<script id="slot-management-controller">
+(() => {
+    const dialog = document.getElementById('slot-management-dialog');
+    const form = document.getElementById('slot-management-form');
+    const slotSelect = document.getElementById('slot-management-slot');
+    const enabled = document.getElementById('slot-management-enabled');
+    const reason = document.getElementById('slot-management-reason');
+    const details = document.getElementById('slot-management-details');
+    const feedback = document.getElementById('slot-management-feedback');
+    const save = document.getElementById('slot-management-save');
+    let settings = {}, activeSlot = null, saving = false, managementRef = null;
+    const rows = [...document.querySelectorAll('#slot-tbody tr[data-slot]')];
+    const validSlots = new Set(rows.map(row => row.dataset.slot));
+    rows.forEach(row => {
+        const option = document.createElement('option'); option.value = row.dataset.slot; option.textContent = row.dataset.slot;
+        slotSelect.appendChild(option);
+    });
+    const manageButton = document.createElement('button');
+    manageButton.type = 'button'; manageButton.className = 'slot-manage-btn'; manageButton.textContent = 'Manage Slots';
+    document.querySelector('#page-dashboard .section-tools').appendChild(manageButton);
+    function loadSelectedSlot() {
+        activeSlot = slotSelect.value;
+        const value = settings[activeSlot] || {};
+        enabled.value = value.enabled === false ? 'false' : 'true';
+        reason.value = value.reason || ''; details.value = value.details || ''; feedback.textContent = '';
+        enabled.disabled = !activeSlot; save.disabled = !activeSlot;
+        syncFields();
+    }
+    slotSelect.addEventListener('change', loadSelectedSlot);
+    manageButton.addEventListener('click', () => {
+        slotSelect.value = ''; loadSelectedSlot(); dialog.showModal();
+    });
+    function syncFields() {
+        const closed = enabled.value === 'false';
+        document.getElementById('slot-management-reasons').hidden = !closed;
+        reason.required = closed; details.required = closed && reason.value === 'Other';
+        document.getElementById('slot-management-details-group').hidden = !details.required;
+        document.getElementById('slot-management-details-hint').textContent = details.required ? '(required)' : '(optional)';
+    }
+    enabled.addEventListener('change', syncFields); reason.addEventListener('change', syncFields);
+    document.getElementById('slot-management-cancel').addEventListener('click', () => { if (!saving) dialog.close(); });
+    dialog.addEventListener('cancel', event => { if (saving) event.preventDefault(); });
+    auth.onAuthStateChanged(user => {
+        if (managementRef) managementRef.off();
+        if (!user) return;
+        managementRef = db.ref('slotManagement');
+        managementRef.on('value', snapshot => { settings = snapshot.val() || {}; globalSlotManagementState = settings; renderDashboardUI(); }, () => {
+            feedback.textContent = 'Unable to load slot settings. Check database access.';
+        });
+    });
+    form.addEventListener('submit', async event => {
+        event.preventDefault(); if (saving || !validSlots.has(activeSlot)) return;
+        const isEnabled = enabled.value === 'true';
+        if (!isEnabled && (!reason.value || (reason.value === 'Other' && !details.value.trim()))) { feedback.textContent = 'Select a reason and provide details for Other.'; return; }
+        saving = true; save.disabled = true; feedback.textContent = 'Saving…';
+        slotSelect.disabled = enabled.disabled = reason.disabled = details.disabled = true;
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('Please sign in again.');
+            const profile = (await db.ref('adminUsers/' + user.uid).once('value')).val();
+            if (!profile || profile.blocked === true || profile.approved !== true || !['admin','main_admin'].includes(profile.role)) throw new Error('An approved administrator account is required.');
+            const savedSetting = {
+                enabled: isEnabled, reason: isEnabled ? '' : reason.value,
+                details: !isEnabled && reason.value === 'Other' ? details.value.trim() : '',
+                updatedBy: user.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP
+            };
+            await db.ref('slotManagement/' + activeSlot).set(savedSetting);
+            settings[activeSlot] = savedSetting;
+            globalSlotManagementState = settings;
+            renderDashboardUI();
+            dialog.close();
+        } catch (error) { feedback.textContent = 'Unable to save: ' + error.message; }
+        finally { saving = false; save.disabled = false; slotSelect.disabled = enabled.disabled = reason.disabled = details.disabled = false; }
+    });
 })();
 </script>
 </body>
