@@ -1395,6 +1395,10 @@
         let globalSlotsState = {};
         let globalSlotManagementState = {};
         let globalHistoryState = {};
+        let rawParkingHistoryState = {};
+        let slotSettingsLoaded = false;
+        let countedVehicleDay = null;
+        const countedVehicleSessions = new Set();
         let currentSlot = null;
         let isAllSlots = true;
         let activeDateKey = null;
@@ -1532,14 +1536,18 @@
             globalSlotManagementState = Object.fromEntries(
                 Object.entries(globalSlotsState).map(([id, slot]) => [id, slot.management || {}])
             );
+            slotSettingsLoaded = true;
+            syncWebsiteHistory();
             renderDashboardUI();
             processCombinedHistory();
             renderTodayStats();
         });
 
-        // The sensor owns parking history writes; the dashboard only reads them.
+        // Raw sensor records enter website state only after availability is checked.
         db.ref('/parkingHistory').on('value', snap => {
-            globalHistoryState = snap.val() || {};
+            rawParkingHistoryState = snap.val() || {};
+            if (!slotSettingsLoaded) return;
+            syncWebsiteHistory();
             renderTodayStats();
             processCombinedHistory();
         });
@@ -1692,6 +1700,20 @@
             return timestamp;
         }
 
+        function syncWebsiteHistory() {
+            const accepted = {};
+            if (slotSettingsLoaded) {
+                Object.entries(rawParkingHistoryState).forEach(([slotId, records]) => {
+                    Object.entries(records || {}).forEach(([id, record]) => {
+                        if (!record || !recordableTimeIn(slotId, record.timeIn)) return;
+                        if (!accepted[slotId]) accepted[slotId] = {};
+                        accepted[slotId][id] = record;
+                    });
+                });
+            }
+            globalHistoryState = accepted;
+        }
+
         // Both website history and the total use this same availability filter.
         function websiteParkingHistory() {
             const filtered = {};
@@ -1712,9 +1734,8 @@
         }
 
         // Keep arrivals counted while separate sensor/history updates are in flight.
-        let countedVehicleDay = null;
-        const countedVehicleSessions = new Set();
         function renderTodayStats() {
+            if (!slotSettingsLoaded) return;
             const tk = todayKey();
             if (countedVehicleDay !== tk) {
                 countedVehicleDay = tk;
@@ -2498,7 +2519,7 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
         if (managementRef) managementRef.off();
         if (!user) return;
         managementRef = db.ref('parkingSlots');
-        managementRef.on('value', snapshot => { settings = Object.fromEntries(Object.entries(snapshot.val() || {}).map(([id, slot]) => [id, slot.management || {}])); globalSlotManagementState = settings; renderDashboardUI(); processCombinedHistory(); renderTodayStats(); }, () => {
+        managementRef.on('value', snapshot => { settings = Object.fromEntries(Object.entries(snapshot.val() || {}).map(([id, slot]) => [id, slot.management || {}])); /* The primary parkingSlots listener owns live state and rendering. */ }, () => {
             feedback.textContent = 'Unable to load slot settings. Check database access.';
         });
     });
@@ -2542,6 +2563,7 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
             await managementSettingsRef.update(savedSetting);
             settings[activeSlot] = savedSetting;
             globalSlotManagementState = settings;
+            syncWebsiteHistory();
             renderDashboardUI();
             processCombinedHistory();
             renderTodayStats();
