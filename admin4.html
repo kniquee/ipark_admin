@@ -1543,7 +1543,7 @@
             renderTodayStats();
         });
 
-        // Raw sensor records enter website state only after availability is checked.
+        // Display sensor history independently of administrative availability.
         db.ref('/parkingHistory').on('value', snap => {
             rawParkingHistoryState = snap.val() || {};
             if (!slotSettingsLoaded) return;
@@ -1620,7 +1620,7 @@
         }
 
         // Time In Column (Preserved when occupied)
-        row.querySelector('.col-timein').innerHTML = occupied && !unavailable && recordableTimeIn(id, sData.timeIn)
+        row.querySelector('.col-timein').innerHTML = occupied && recordableTimeIn(id, sData.timeIn)
             ? formatTime(recordableTimeIn(id, sData.timeIn))
             : '<span class="time-val empty">—</span>';
 
@@ -1645,7 +1645,7 @@
             notWorkingCount++;
         }
         if (occupied) {
-            if (!unavailable) oc++;
+            oc++;
             // Occupied slots (Working or Not Working) go to top group
             occupiedGroup.push({ row, timeIn });
         } else {
@@ -1683,21 +1683,12 @@
     }
 }
 
+        // Availability labels do not suppress physical parking activity.
         function recordableTimeIn(slotId, value) {
             if (value === null || value === undefined || value === '') return null;
             const numeric = Number(value);
-            let timestamp = Number.isFinite(numeric) ? numeric : parseTimestamp(value);
-            if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
-            const management = globalSlotManagementState[slotId] || {};
-            const resumed = Number(management.recordingResumes?.[String(timestamp)]);
-            if (resumed > timestamp) timestamp = resumed;
-            const blocks = Object.values(management.recordingBlocks || {});
-            if (blocks.some(block => timestamp >= Number(block.start) && timestamp < Number(block.end))) return null;
-            if (management.enabled === false) {
-                const disabledSince = Number(management.recordingDisabledSince || management.updatedAt) || 0;
-                if (timestamp >= disabledSince) return null;
-            }
-            return timestamp;
+            const timestamp = Number.isFinite(numeric) ? numeric : parseTimestamp(value);
+            return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : null;
         }
 
         function syncWebsiteHistory() {
@@ -1714,23 +1705,8 @@
             globalHistoryState = accepted;
         }
 
-        // Both website history and the total use this same availability filter.
         function websiteParkingHistory() {
-            const filtered = {};
-            Object.entries(globalHistoryState).forEach(([slotId, records]) => {
-                const management = globalSlotManagementState[slotId] || {};
-                const cutoff = Number(management.recordingDisabledSince || management.updatedAt) || 0;
-                Object.entries(records || {}).forEach(([id, record]) => {
-                    if (!record) return;
-                    const rawTimeIn = Number(record.timeIn) || parseTimestamp(record.timeIn);
-                    // Preserve earlier visits, but never add arrivals during unavailability.
-                    if (management.enabled === false && (!rawTimeIn || rawTimeIn >= cutoff)) return;
-                    if (!recordableTimeIn(slotId, record.timeIn)) return;
-                    if (!filtered[slotId]) filtered[slotId] = {};
-                    filtered[slotId][id] = record;
-                });
-            });
-            return filtered;
+            return globalHistoryState;
         }
 
         // Keep arrivals counted while separate sensor/history updates are in flight.
@@ -1765,7 +1741,7 @@
                 });
             });
             Object.entries(globalSlotsState).forEach(([slotId, slot]) => {
-                if (!slot || !MONITORED_SLOTS.has(slotId) || globalSlotManagementState[slotId]?.enabled === false) return;
+                if (!slot || !MONITORED_SLOTS.has(slotId)) return;
                 // An explicit false wins over a stale status during departure.
                 const occupied = typeof slot.occupied === 'boolean'
                     ? slot.occupied : String(slot.status || '').toLowerCase() === 'occupied';
@@ -1806,7 +1782,7 @@
             const targetSlots = isAllSlots ? ALL_SLOTS : [currentSlot];
             targetSlots.forEach(sId => {
                 const sData = globalSlotsState[sId];
-                if (sData && globalSlotManagementState[sId]?.enabled !== false) {
+                if (sData) {
                     const status = sData.status || '';
                     if (status === 'Not Working') return;   // Skip broken sensors from live history
 
@@ -2534,26 +2510,7 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
             if (!user) throw new Error('Please sign in again.');
             const profile = (await db.ref('adminUsers/' + user.uid).once('value')).val();
             if (!profile || profile.blocked === true || profile.approved !== true || !['admin','main_admin'].includes(profile.role)) throw new Error('An approved administrator account is required.');
-            const previousSetting = settings[activeSlot] || {};
-            const now = Date.now();
-            const recordingBlocks = { ...(previousSetting.recordingBlocks || {}) };
-            const recordingResumes = { ...(previousSetting.recordingResumes || {}) };
-            let recordingDisabledSince = previousSetting.recordingDisabledSince || null;
-            if (!isEnabled && previousSetting.enabled !== false) recordingDisabledSince = now;
-            if (!isEnabled && !recordingDisabledSince) recordingDisabledSince = previousSetting.updatedAt || now;
-            if (isEnabled && previousSetting.enabled === false) {
-                const start = Number(recordingDisabledSince || previousSetting.updatedAt) || now;
-                recordingBlocks[String(start)] = { start, end: now };
-                recordingDisabledSince = null;
-                const live = globalSlotsState[activeSlot] || {};
-                const occupied = typeof live.occupied === 'boolean' ? live.occupied : String(live.status || '').toLowerCase() === 'occupied';
-                const originalTimeIn = Number(live.timeIn);
-                if (occupied && originalTimeIn >= start && originalTimeIn < now) {
-                    recordingResumes[String(originalTimeIn)] = now;
-                }
-            }
             const savedSetting = {
-                recordingBlocks, recordingResumes, recordingDisabledSince,
                 enabled: isEnabled, reason: isEnabled ? '' : reason.value,
                 details: !isEnabled && reason.value === 'Other' ? details.value.trim() : '',
                 updatedBy: user.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP
