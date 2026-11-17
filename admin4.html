@@ -1451,7 +1451,7 @@
            Session management — idempotent, no duplicates
            ═══════════════════════════════════════════════════════════ */
         auth.onAuthStateChanged(user => {
-            if (!user) { window.location.href = 'admin_signin.html?v=merged-db-v2'; return; }
+            if (!user) { window.location.href = 'admin_signin.html'; return; }
             currentActiveUid = user.uid;
 
             db.ref('adminUsers/' + user.uid).on('value', snap => {
@@ -1461,7 +1461,7 @@
                     auth.signOut().then(() => {
                         localStorage.clear();
                         sessionStorage.clear();
-                        window.location.href = 'admin_signin.html?v=merged-db-v2';
+                        window.location.href = 'admin_signin.html';
                     });
                     return;
                 }
@@ -1473,7 +1473,7 @@
                     auth.signOut().then(() => {
                         localStorage.clear();
                         sessionStorage.clear();
-                        window.location.href = 'admin_signin.html?v=merged-db-v2';
+                        window.location.href = 'admin_signin.html';
                     });
                     return;
                 }
@@ -1550,11 +1550,7 @@
         });
 
         /* ═══════════════════════════════════════════════════════════
-           ✅ UPDATED: renderDashboardUI with sensor detection + smart sort
-           Sort priority:
-             1. Not Working slots (regardless of occupied) — TOP
-             2. Occupied slots (newest timeIn first)
-             3. Available slots (original order)
+           Slot Activity keeps monitored slots first in fixed order, followed by the remaining slots.
            ═══════════════════════════════════════════════════════════ */
         function renderDashboardUI() {
     let av = 0, oc = 0, notWorkingCount = 0;
@@ -1628,7 +1624,7 @@
         // Sensor Column
         const sensorCell = row.querySelector('.col-sensor');
         if (!hasSensor) {
-            sensorCell.innerHTML = '<span class="sensor-badge no-sensor">Not Working</span>';
+            sensorCell.innerHTML = '<span class="sensor-badge no-sensor">No Sensor</span>';
         } else if (notWorking) {
             sensorCell.innerHTML = `<span class="sensor-badge not-working">
                 <svg class="icon-sm" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
@@ -1656,23 +1652,10 @@
         }
     });
 
-    // Occupied first, Available in physical slot order, Unavailable last.
-    const rowRank = row => {
-        if (row.dataset.status === 'unavailable') return 2;
-        const data = globalSlotsState[row.dataset.slot] || {};
-        return MONITORED_SLOTS.has(row.dataset.slot) &&
-            (data.occupied === true || data.status === 'Occupied' || data.status === 'occupied') ? 0 : 1;
-    };
-    rows.sort((a, b) => {
-        const rankDifference = rowRank(a) - rowRank(b);
-        if (rankDifference) return rankDifference;
-        if (rowRank(a) === 0) {
-            const timeDifference = (globalSlotsState[b.dataset.slot]?.timeIn || 0) -
-                (globalSlotsState[a.dataset.slot]?.timeIn || 0);
-            if (timeDifference) return timeDifference;
-        }
-        return originalOrder.indexOf(a.dataset.slot) - originalOrder.indexOf(b.dataset.slot);
-    });
+    // Monitored slots stay in the displayed order regardless of occupancy or sensor health.
+    const monitoredOrder = ['L1', 'M2', 'M4', 'M6', 'R3', 'R5'];
+    const displayOrder = [...monitoredOrder, ...originalOrder.filter(id => !monitoredOrder.includes(id))];
+    rows.sort((a, b) => displayOrder.indexOf(a.dataset.slot) - displayOrder.indexOf(b.dataset.slot));
     rows.forEach(row => tbody.appendChild(row));
 
     // Update Stat Cards
@@ -2197,7 +2180,7 @@
             auth.signOut().then(() => {
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = 'admin_signin.html?v=merged-db-v2';
+                window.location.href = 'admin_signin.html';
             });
         };
 

@@ -790,7 +790,7 @@
                                 localStorage.setItem('adminEmail', user.email);
                                 localStorage.setItem('adminRole', role);
                                 localStorage.setItem('adminUid', user.uid);
-                                window.location.href = 'admin4.html?v=merged-db-v2';
+                                window.location.href = 'admin4.html';
                             });
                     })
                     .catch(err => {
@@ -1006,7 +1006,7 @@
                 if (snap.exists()) {
                     const userData = snap.val();
                     if (!userData.blocked && userData.approved !== false) {
-                        window.location.href = 'admin4.html?v=merged-db-v2';
+                        window.location.href = 'admin4.html';
                     } else {
                         auth.signOut().then(() => setStatus('signin-error-msg', userData.approved === false ? 'Your account is pending approval.' : 'This account is blocked. Please contact the Main Administrator.'));
                     }
