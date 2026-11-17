@@ -1612,8 +1612,8 @@
         }
 
         // Time In Column (Preserved when occupied)
-        row.querySelector('.col-timein').innerHTML = occupied
-            ? formatTime(sData.timeIn)
+        row.querySelector('.col-timein').innerHTML = occupied && !unavailable && recordableTimeIn(id, sData.timeIn)
+            ? formatTime(recordableTimeIn(id, sData.timeIn))
             : '<span class="time-val empty">—</span>';
 
         // Sensor Column
@@ -1675,26 +1675,87 @@
     }
 }
 
+        function recordableTimeIn(slotId, value) {
+            if (value === null || value === undefined || value === '') return null;
+            const numeric = Number(value);
+            let timestamp = Number.isFinite(numeric) ? numeric : parseTimestamp(value);
+            if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+            const management = globalSlotManagementState[slotId] || {};
+            const resumed = Number(management.recordingResumes?.[String(timestamp)]);
+            if (resumed > timestamp) timestamp = resumed;
+            const blocks = Object.values(management.recordingBlocks || {});
+            if (blocks.some(block => timestamp >= Number(block.start) && timestamp < Number(block.end))) return null;
+            if (management.enabled === false) {
+                const disabledSince = Number(management.recordingDisabledSince || management.updatedAt) || 0;
+                if (timestamp >= disabledSince) return null;
+            }
+            return timestamp;
+        }
+
+        // Both website history and the total use this same availability filter.
+        function websiteParkingHistory() {
+            const filtered = {};
+            Object.entries(globalHistoryState).forEach(([slotId, records]) => {
+                const management = globalSlotManagementState[slotId] || {};
+                const cutoff = Number(management.recordingDisabledSince || management.updatedAt) || 0;
+                Object.entries(records || {}).forEach(([id, record]) => {
+                    if (!record) return;
+                    const rawTimeIn = Number(record.timeIn) || parseTimestamp(record.timeIn);
+                    // Preserve earlier visits, but never add arrivals during unavailability.
+                    if (management.enabled === false && (!rawTimeIn || rawTimeIn >= cutoff)) return;
+                    if (!recordableTimeIn(slotId, record.timeIn)) return;
+                    if (!filtered[slotId]) filtered[slotId] = {};
+                    filtered[slotId][id] = record;
+                });
+            });
+            return filtered;
+        }
+
+        // Keep arrivals counted while separate sensor/history updates are in flight.
+        let countedVehicleDay = null;
+        const countedVehicleSessions = new Set();
         function renderTodayStats() {
-            const sessions = new Set();
             const tk = todayKey();
-            const addSession = (slotId, timeIn) => {
-                const timestamp = parseTimestamp(timeIn);
+            if (countedVehicleDay !== tk) {
+                countedVehicleDay = tk;
+                countedVehicleSessions.clear();
+            }
+            const counterTimestamp = value => {
+                if (value === null || value === undefined || value === '') return null;
+                const number = Number(value);
+                const timestamp = Number.isFinite(number) ? number : parseTimestamp(value);
+                return timestamp > 0 && Number.isFinite(timestamp) ? timestamp : null;
+            };
+            const addSession = (slotId, rawTimestamp) => {
+                const timestamp = recordableTimeIn(slotId, rawTimestamp);
                 if (timestamp && dateKey(new Date(timestamp)) === tk) {
-                    sessions.add(JSON.stringify([slotId, timestamp]));
+                    countedVehicleSessions.add(JSON.stringify([slotId, timestamp]));
                 }
             };
-            Object.entries(globalHistoryState).forEach(([slotId, records]) => {
+            const previousSessions = Array.from(countedVehicleSessions);
+            countedVehicleSessions.clear();
+            previousSessions.forEach(key => {
+                const [slotId, timestamp] = JSON.parse(key);
+                addSession(slotId, timestamp);
+            });
+            Object.entries(websiteParkingHistory()).forEach(([slotId, records]) => {
                 Object.values(records || {}).forEach(record => {
-                    if (record) addSession(slotId, record.timeIn);
+                    if (record) addSession(slotId, counterTimestamp(record.timeIn));
                 });
             });
             Object.entries(globalSlotsState).forEach(([slotId, slot]) => {
-                if (slot && (slot.occupied === true || slot.status === 'Occupied')) {
-                    addSession(slotId, slot.timeIn);
+                if (!slot || !MONITORED_SLOTS.has(slotId) || globalSlotManagementState[slotId]?.enabled === false) return;
+                // An explicit false wins over a stale status during departure.
+                const occupied = typeof slot.occupied === 'boolean'
+                    ? slot.occupied : String(slot.status || '').toLowerCase() === 'occupied';
+                const timeIn = counterTimestamp(slot.timeIn);
+                const timeOut = counterTimestamp(slot.timeOut);
+                // Do not count the previous visit's timestamp when occupied changes first.
+                if (occupied && timeIn && (!timeOut || timeOut <= timeIn)) {
+                    addSession(slotId, timeIn);
                 }
             });
-            const count = sessions.size;
+            const count = countedVehicleSessions.size;
             document.getElementById('stat-today').textContent = count;
             document.getElementById('stat-today-date').textContent = new Date().toLocaleDateString('en-PH');
             document.getElementById('stat-today-bar').style.width = `${Math.min((count/21)*100, 100)}%`;
@@ -1704,15 +1765,15 @@
         function processCombinedHistory() {
             const combined = [];
 
-            Object.entries(globalHistoryState).forEach(([sId, recs]) => {
+            Object.entries(websiteParkingHistory()).forEach(([sId, recs]) => {
                 if (isAllSlots || sId === currentSlot) {
                     if (typeof recs === 'object' && recs !== null) {
                         Object.values(recs).forEach(r => {
-                            if (r && r.timeIn) {
+                            if (r && recordableTimeIn(sId, r.timeIn)) {
                                 combined.push({
                                     ...r,
                                     _slot: sId,
-                                    timeIn: parseTimestamp(r.timeIn),
+                                    timeIn: recordableTimeIn(sId, r.timeIn),
                                     timeOut: parseTimestamp(r.timeOut)
                                 });
                             }
@@ -1724,13 +1785,14 @@
             const targetSlots = isAllSlots ? ALL_SLOTS : [currentSlot];
             targetSlots.forEach(sId => {
                 const sData = globalSlotsState[sId];
-                if (sData) {
+                if (sData && globalSlotManagementState[sId]?.enabled !== false) {
                     const status = sData.status || '';
                     if (status === 'Not Working') return;   // Skip broken sensors from live history
 
-                    const occupied = sData.occupied === true || status === 'Occupied';
+                    const occupied = typeof sData.occupied === 'boolean' ? sData.occupied : status.toLowerCase() === 'occupied';
                     if (occupied && sData.timeIn) {
-                        const parsedTimeIn = parseTimestamp(sData.timeIn);
+                        const parsedTimeIn = recordableTimeIn(sId, sData.timeIn);
+                        if (!parsedTimeIn) return;
                         const exists = combined.some(r => r._slot === sId && r.timeIn === parsedTimeIn);
                         if (!exists) {
                             combined.push({
@@ -2436,7 +2498,7 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
         if (managementRef) managementRef.off();
         if (!user) return;
         managementRef = db.ref('parkingSlots');
-        managementRef.on('value', snapshot => { settings = Object.fromEntries(Object.entries(snapshot.val() || {}).map(([id, slot]) => [id, slot.management || {}])); globalSlotManagementState = settings; renderDashboardUI(); }, () => {
+        managementRef.on('value', snapshot => { settings = Object.fromEntries(Object.entries(snapshot.val() || {}).map(([id, slot]) => [id, slot.management || {}])); globalSlotManagementState = settings; renderDashboardUI(); processCombinedHistory(); renderTodayStats(); }, () => {
             feedback.textContent = 'Unable to load slot settings. Check database access.';
         });
     });
@@ -2451,7 +2513,26 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
             if (!user) throw new Error('Please sign in again.');
             const profile = (await db.ref('adminUsers/' + user.uid).once('value')).val();
             if (!profile || profile.blocked === true || profile.approved !== true || !['admin','main_admin'].includes(profile.role)) throw new Error('An approved administrator account is required.');
+            const previousSetting = settings[activeSlot] || {};
+            const now = Date.now();
+            const recordingBlocks = { ...(previousSetting.recordingBlocks || {}) };
+            const recordingResumes = { ...(previousSetting.recordingResumes || {}) };
+            let recordingDisabledSince = previousSetting.recordingDisabledSince || null;
+            if (!isEnabled && previousSetting.enabled !== false) recordingDisabledSince = now;
+            if (!isEnabled && !recordingDisabledSince) recordingDisabledSince = previousSetting.updatedAt || now;
+            if (isEnabled && previousSetting.enabled === false) {
+                const start = Number(recordingDisabledSince || previousSetting.updatedAt) || now;
+                recordingBlocks[String(start)] = { start, end: now };
+                recordingDisabledSince = null;
+                const live = globalSlotsState[activeSlot] || {};
+                const occupied = typeof live.occupied === 'boolean' ? live.occupied : String(live.status || '').toLowerCase() === 'occupied';
+                const originalTimeIn = Number(live.timeIn);
+                if (occupied && originalTimeIn >= start && originalTimeIn < now) {
+                    recordingResumes[String(originalTimeIn)] = now;
+                }
+            }
             const savedSetting = {
+                recordingBlocks, recordingResumes, recordingDisabledSince,
                 enabled: isEnabled, reason: isEnabled ? '' : reason.value,
                 details: !isEnabled && reason.value === 'Other' ? details.value.trim() : '',
                 updatedBy: user.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP
@@ -2462,6 +2543,8 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
             settings[activeSlot] = savedSetting;
             globalSlotManagementState = settings;
             renderDashboardUI();
+            processCombinedHistory();
+            renderTodayStats();
             dialog.close();
         } catch (error) { feedback.textContent = 'Unable to save: ' + error.message; }
         finally { saving = false; save.disabled = false; slotSelect.disabled = enabled.disabled = reason.disabled = details.disabled = false; }
