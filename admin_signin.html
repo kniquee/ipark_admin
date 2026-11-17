@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="database-schema" content="merged-db-v2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iPark Admin — Access Portal</title>
@@ -647,20 +651,7 @@
     }
 
     function checkPendingApproval(username) {
-        return new Promise((resolve, reject) => {
-            db.ref('pendingAdmins').orderByChild('username').equalTo(username).once('value')
-                .then(snap => {
-                    if (snap.exists()) {
-                        const users = snap.val();
-                        const uid = Object.keys(users)[0];
-                        const userData = users[uid];
-                        resolve({ uid, ...userData });
-                    } else {
-                        resolve(null);
-                    }
-                })
-                .catch(err => reject(err));
-        });
+        return findUserByUsername(username).then(user => user && user.approved === false ? user : null);
     }
 
     /* ✅ FIX: Writes session ID to sessionStorage (matches admin4.html) */
@@ -768,6 +759,12 @@
                         });
                 }
 
+                if (userData.approved === false) {
+                    setStatus('signin-warning-msg', 'Your account is pending approval. Please wait for administrator approval.');
+                    resetSignInBtn();
+                    return;
+                }
+
                 // ✅ Blocked check FIRST — before attempting Firebase Auth
                 if (userData.blocked === true) {
                     setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.');
@@ -793,7 +790,7 @@
                                 localStorage.setItem('adminEmail', user.email);
                                 localStorage.setItem('adminRole', role);
                                 localStorage.setItem('adminUid', user.uid);
-                                window.location.href = 'admin4.html';
+                                window.location.href = 'admin4.html?v=merged-db-v2';
                             });
                     })
                     .catch(err => {
@@ -922,7 +919,7 @@
                         failedAttempts: 0
                     };
 
-                    return db.ref('pendingAdmins/' + uid).set(requestData).then(() => auth.signOut());
+                    return db.ref('adminUsers/' + uid).set(requestData).then(() => auth.signOut());
                 })
                 .then(() => {
                     isRegistering = false;
@@ -1008,10 +1005,10 @@
             db.ref('adminUsers/' + user.uid).once('value', snap => {
                 if (snap.exists()) {
                     const userData = snap.val();
-                    if (!userData.blocked) {
-                        window.location.href = 'admin4.html';
+                    if (!userData.blocked && userData.approved !== false) {
+                        window.location.href = 'admin4.html?v=merged-db-v2';
                     } else {
-                        auth.signOut().then(() => setStatus('signin-error-msg', 'This account is blocked. Please contact the Main Administrator.'));
+                        auth.signOut().then(() => setStatus('signin-error-msg', userData.approved === false ? 'Your account is pending approval.' : 'This account is blocked. Please contact the Main Administrator.'));
                     }
                 }
             });

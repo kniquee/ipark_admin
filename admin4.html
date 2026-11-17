@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="database-schema" content="merged-db-v2">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iPark Admin</title>
@@ -789,7 +793,7 @@
         .section-header, .pending-header { padding: 18px 20px; }
         .stat-card { padding: 22px; }
         .stat-card:hover { transform: none; }
-        .stat-number { font-size: 38px; }
+        .stat-number { font-size: 40px; line-height: 38px; }
         .stat-label { font: 600 12px/1.5 var(--sans); letter-spacing: .6px; }
         .stat-desc { font: 400 12px/1.6 var(--sans); }
         
@@ -862,7 +866,7 @@
     @media screen and (max-width: 420px) {
         .stats-row { gap: 10px; }
         .stat-card { padding: 16px; }
-        .stat-number { font-size: 30px; }
+        .stat-number { font-size: 32px; line-height: 30px; }
         .stat-label { font-size: 11px; letter-spacing: 0; }
     }
     @media screen and (prefers-reduced-motion: reduce) {
@@ -1070,7 +1074,7 @@
                 <div class="nav-section-label">Manage</div>
                 <a class="nav-item" id="nav-accounts" onclick="showPage('accounts')">
                     <svg class="icon-md" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    Account Profile
+                    Account Management
                 </a>
             </nav>
             <div class="regular-admin-identity" id="regular-admin-identity" aria-label="Signed-in administrator" style="display:none">
@@ -1447,17 +1451,17 @@
            Session management — idempotent, no duplicates
            ═══════════════════════════════════════════════════════════ */
         auth.onAuthStateChanged(user => {
-            if (!user) { window.location.href = 'admin_signin.html'; return; }
+            if (!user) { window.location.href = 'admin_signin.html?v=merged-db-v2'; return; }
             currentActiveUid = user.uid;
 
             db.ref('adminUsers/' + user.uid).on('value', snap => {
                 const data = snap.val();
 
-                if (!data) {
+                if (!data || data.approved === false) {
                     auth.signOut().then(() => {
                         localStorage.clear();
                         sessionStorage.clear();
-                        window.location.href = 'admin_signin.html';
+                        window.location.href = 'admin_signin.html?v=merged-db-v2';
                     });
                     return;
                 }
@@ -1469,7 +1473,7 @@
                     auth.signOut().then(() => {
                         localStorage.clear();
                         sessionStorage.clear();
-                        window.location.href = 'admin_signin.html';
+                        window.location.href = 'admin_signin.html?v=merged-db-v2';
                     });
                     return;
                 }
@@ -1529,59 +1533,20 @@
 
         /* ── Real-Time Listeners ── */
         db.ref('/parkingSlots').on('value', snap => {
-            const newSlotsState = snap.val() || {};
-
-            if (Object.keys(globalSlotsState).length > 0) {
-                ALL_SLOTS.forEach(slotId => {
-                    const oldData = globalSlotsState[slotId];
-                    const newData = newSlotsState[slotId];
-
-                    const oldStatus = (oldData && oldData.status) || '';
-                    const newStatus = (newData && newData.status) || '';
-
-                    // Don't log to history when transitioning FROM/TO "Not Working"
-                    if (oldStatus === 'Not Working' || newStatus === 'Not Working') {
-                        return;
-                    }
-
-                    const wasOccupied = oldData && (oldData.occupied === true || oldStatus === 'Occupied');
-                    const isNowAvailable = newData && (newData.occupied === false || newStatus === 'Available');
-
-                    if (wasOccupied && isNowAvailable && oldData.timeIn) {
-                        let timeOutVal = (newData && newData.timeOut) ? newData.timeOut : Date.now();
-                        if (timeOutVal <= oldData.timeIn) {
-                            timeOutVal = Date.now();
-                        }
-
-                        const newRecord = { timeIn: oldData.timeIn, timeOut: timeOutVal };
-                        const newRef = db.ref(`/history/${slotId}`).push(newRecord);
-
-                        if (!globalHistoryState) globalHistoryState = {};
-                        if (!globalHistoryState[slotId]) globalHistoryState[slotId] = {};
-                        globalHistoryState[slotId][newRef.key] = newRecord;
-                    }
-                });
-            }
-
-            globalSlotsState = newSlotsState;
-
+            globalSlotsState = snap.val() || {};
+            globalSlotManagementState = Object.fromEntries(
+                Object.entries(globalSlotsState).map(([id, slot]) => [id, slot.management || {}])
+            );
             renderDashboardUI();
             processCombinedHistory();
-            if (typeof renderTodayStats === 'function') renderTodayStats();
+            renderTodayStats();
         });
 
-        db.ref('/history').on('value', snap => {
+        // The sensor owns parking history writes; the dashboard only reads them.
+        db.ref('/parkingHistory').on('value', snap => {
             globalHistoryState = snap.val() || {};
             renderTodayStats();
             processCombinedHistory();
-        });
-
-        db.ref('/parkingHistory').on('value', snap => {
-            if (!Object.keys(globalHistoryState).length) {
-                globalHistoryState = snap.val() || {};
-                renderTodayStats();
-                processCombinedHistory();
-            }
         });
 
         /* ═══════════════════════════════════════════════════════════
@@ -1649,8 +1614,9 @@
         if (unavailable && id !== 'M1') {
             const label = document.createElement('span');
             label.className = 'slot-management-label';
-            label.textContent = management.reason || 'Reason not provided';
-            if (management.details) label.textContent += ' — ' + management.details;
+            label.textContent = management.reason === 'Other'
+                ? (management.details || 'Reason not provided')
+                : (management.reason || 'Reason not provided');
             statusCell.appendChild(label);
         }
 
@@ -1732,14 +1698,25 @@
 }
 
         function renderTodayStats() {
-            let count = 0;
+            const sessions = new Set();
             const tk = todayKey();
-            Object.values(globalHistoryState).forEach(slots => {
-                Object.values(slots || {}).forEach(r => {
-                    const tIn = parseTimestamp(r.timeIn);
-                    if(tIn && dateKey(new Date(tIn)) === tk) count++;
+            const addSession = (slotId, timeIn) => {
+                const timestamp = parseTimestamp(timeIn);
+                if (timestamp && dateKey(new Date(timestamp)) === tk) {
+                    sessions.add(JSON.stringify([slotId, timestamp]));
+                }
+            };
+            Object.entries(globalHistoryState).forEach(([slotId, records]) => {
+                Object.values(records || {}).forEach(record => {
+                    if (record) addSession(slotId, record.timeIn);
                 });
             });
+            Object.entries(globalSlotsState).forEach(([slotId, slot]) => {
+                if (slot && (slot.occupied === true || slot.status === 'Occupied')) {
+                    addSession(slotId, slot.timeIn);
+                }
+            });
+            const count = sessions.size;
             document.getElementById('stat-today').textContent = count;
             document.getElementById('stat-today-date').textContent = new Date().toLocaleDateString('en-PH');
             document.getElementById('stat-today-bar').style.width = `${Math.min((count/21)*100, 100)}%`;
@@ -1920,7 +1897,7 @@
             db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val() || {})
                     .map(([uid, d]) => ({ uid, ...d }))
-                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A' && a.role !== 'main_admin');
+                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A' && a.role !== 'main_admin' && a.approved !== false);
 
                 document.getElementById('admin-count-badge').textContent = `${list.length} Admin(s)`;
                 const tbody = document.getElementById('active-admins-tbody');
@@ -2045,7 +2022,6 @@
 
             const updates = {};
             updates['/adminUsers/' + deleteAdminUid] = null;
-            updates['/pendingAdmins/' + deleteAdminUid] = null;
 
             db.ref('adminSessions').orderByChild('uid').equalTo(deleteAdminUid).once('value', snap => {
                 const sessions = snap.val() || {};
@@ -2155,10 +2131,10 @@
 
         /* ── Pending Applications ── */
         function loadPendingAdmins() {
-            db.ref('/pendingAdmins').on('value', snap => {
+            db.ref('/adminUsers').on('value', snap => {
                 const list = Object.entries(snap.val()||{})
                     .map(([uid, d]) => ({ uid, ...d }))
-                    .filter(a => a.username && a.username.trim() !== '' && a.username !== 'N/A');
+                    .filter(a => a.approved === false && a.username && a.username.trim() !== '' && a.username !== 'N/A');
 
                 const pendingCard = document.getElementById('pending-card-container');
 
@@ -2206,14 +2182,11 @@
         document.getElementById('reject-cancel').onclick = () => document.getElementById('modal-reject').classList.remove('visible');
         document.getElementById('approve-confirm').onclick = () => {
             if(!pendingUid) return;
-            const up = {};
-            up['/adminUsers/'+pendingUid] = { ...pendingData, approved:true, blocked: false, failedAttempts: 0 };
-            up['/pendingAdmins/'+pendingUid] = null;
-            db.ref().update(up); document.getElementById('modal-approve').classList.remove('visible');
+            db.ref('adminUsers/' + pendingUid).update({ approved: true, blocked: false, failedAttempts: 0 }); document.getElementById('modal-approve').classList.remove('visible');
         };
         document.getElementById('reject-confirm').onclick = () => {
             if(!rejectUid) return;
-            db.ref('/pendingAdmins/'+rejectUid).remove(); document.getElementById('modal-reject').classList.remove('visible');
+            db.ref('/adminUsers/'+rejectUid).remove(); document.getElementById('modal-reject').classList.remove('visible');
         };
 
         /* ── Sign Out ── */
@@ -2224,7 +2197,7 @@
             auth.signOut().then(() => {
                 localStorage.clear();
                 sessionStorage.clear();
-                window.location.href = 'admin_signin.html';
+                window.location.href = 'admin_signin.html?v=merged-db-v2';
             });
         };
 
@@ -2408,6 +2381,15 @@ html[data-theme="light"] .status-badge.manually-unavailable { background:#edf1f5
 #slot-management-dialog label { display:block; margin-top:14px; margin-bottom:6px; font-weight:600; }
 #slot-management-dialog select,#slot-management-dialog textarea { width:100%; padding:10px; background:var(--bg-deep); color:var(--text-primary); border:1px solid var(--border); border-radius:8px; font:inherit; }
 #slot-management-dialog .modal-buttons { margin-top:20px; }
+#slot-management-save { flex:1; padding:12px 16px; background:#68518d; color:#ffffff; border:1px solid #937ab6; font-size:13px; font-weight:700; transition:background .18s, border-color .18s; }
+#slot-management-save:hover:not(:disabled) { background:#765d9d; border-color:#b29cde; }
+#slot-management-save:active:not(:disabled) { background:#594479; }
+#slot-management-save:focus-visible { outline:3px solid #bda7e4; outline-offset:3px; }
+#slot-management-save:disabled { background:#384354; color:#b8c2d0; border-color:#59667a; cursor:not-allowed; }
+html[data-theme="light"] #slot-management-save { background:#68518d; color:#ffffff; border-color:#68518d; }
+html[data-theme="light"] #slot-management-save:hover:not(:disabled) { background:#594479; border-color:#594479; }
+html[data-theme="light"] #slot-management-save:active:not(:disabled) { background:#4c3969; }
+html[data-theme="light"] #slot-management-save:disabled { background:#e2e5eb; color:#606a79; border-color:#bbc3cf; }
 #slot-management-feedback { min-height:20px; margin-top:12px; color:var(--text-secondary); }
 html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; border-color:#a9c8df; }
 </style>
@@ -2475,8 +2457,8 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
     auth.onAuthStateChanged(user => {
         if (managementRef) managementRef.off();
         if (!user) return;
-        managementRef = db.ref('slotManagement');
-        managementRef.on('value', snapshot => { settings = snapshot.val() || {}; globalSlotManagementState = settings; renderDashboardUI(); }, () => {
+        managementRef = db.ref('parkingSlots');
+        managementRef.on('value', snapshot => { settings = Object.fromEntries(Object.entries(snapshot.val() || {}).map(([id, slot]) => [id, slot.management || {}])); globalSlotManagementState = settings; renderDashboardUI(); }, () => {
             feedback.textContent = 'Unable to load slot settings. Check database access.';
         });
     });
@@ -2496,7 +2478,9 @@ html[data-theme="light"] .slot-manage-btn { background:#e0eef9; color:#155780; b
                 details: !isEnabled && reason.value === 'Other' ? details.value.trim() : '',
                 updatedBy: user.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP
             };
-            await db.ref('slotManagement/' + activeSlot).set(savedSetting);
+            // Update only this slot's management child; sensor fields remain untouched.
+            const managementSettingsRef = db.ref('parkingSlots').child(activeSlot).child('management');
+            await managementSettingsRef.update(savedSetting);
             settings[activeSlot] = savedSetting;
             globalSlotManagementState = settings;
             renderDashboardUI();
