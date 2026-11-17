@@ -1645,7 +1645,7 @@
             notWorkingCount++;
         }
         if (occupied) {
-            oc++;
+            if (!unavailable) oc++;
             // Occupied slots (Working or Not Working) go to top group
             occupiedGroup.push({ row, timeIn });
         } else {
